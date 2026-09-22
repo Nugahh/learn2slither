@@ -32,18 +32,21 @@ def format_vision(board):
 def _scan(board, drow, dcol):
     head_row, head_col = board.snake[0]
     row, col = head_row + drow, head_col + dcol
+    distance = 1
     symbol = _cell_symbol(board, row, col)
     while symbol == config.SYMBOL_EMPTY:
         row += drow
         col += dcol
+        distance += 1
         symbol = _cell_symbol(board, row, col)
-    return symbol
+    return symbol, distance
 
 
 def get_compact_state(board):
-    return (
-        _scan(board, -1, 0),
-        _scan(board, 1, 0),
-        _scan(board, 0, -1),
-        _scan(board, 0, 1),
-    )
+    directions = ((-1, 0), (1, 0), (0, -1), (0, 1))
+    state = []
+    for drow, dcol in directions:
+        symbol, distance = _scan(board, drow, dcol)
+        bucket = min(distance, config.MAX_DISTANCE_BUCKET)
+        state.append(f"{symbol}{bucket}")
+    return tuple(state)

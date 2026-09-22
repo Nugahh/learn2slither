@@ -65,10 +65,19 @@ et complique les tests unitaires par partie — écarté.
   l'état interne de l'agent.
 - **État compact fourni à la Q-table** : pour chacune des 4 directions, on
   scanne depuis la tête jusqu'au premier objet non-vide rencontré, parmi
-  `{WALL, BODY, GREEN, RED}`. L'état est donc un tuple de 4 valeurs.
-  Espace d'états = 4⁴ = 256 combinaisons possibles, ce qui permet une
-  convergence rapide de la Q-table. La distance à l'objet n'est pas encodée
-  (simplification volontaire assumée).
+  `{WALL, BODY, GREEN, RED}`, et la distance à cet objet est regroupée en
+  3 paliers (1, 2, 3+). Chaque direction est encodée comme une chaîne
+  `symbole + palier` (ex. `"G1"` = pomme verte adjacente, `"G3"` = pomme
+  verte à 3 cases ou plus). L'état est un tuple de 4 chaînes.
+  Espace d'états = (4×3)⁴ = 20736 combinaisons possibles au maximum, mais
+  seul un petit sous-ensemble est réellement visité en pratique (ex. ~125
+  états après 1000 sessions d'entraînement sur un plateau 10x10).
+  *Révision post-implémentation* : la première version n'encodait pas la
+  distance (4⁴ = 256 états), ce qui empêchait l'agent de distinguer une
+  pomme proche d'une pomme lointaine dans la même direction et entraînait
+  des oscillations stériles en mode glouton. Le palier de distance reste
+  strictement dérivé de la vision du serpent (aucune information hors
+  champ n'est ajoutée).
 - Aucune information non visible par le serpent n'est fournie à l'agent
   (contrainte du sujet, pénalité -42 sinon).
 
