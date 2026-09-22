@@ -24,10 +24,14 @@ class QLearningAgent:
         return self.q_table.setdefault(
             state, {action: 0.0 for action in self.actions})
 
+    def _peek_values(self, state):
+        return self.q_table.get(
+            state, {action: 0.0 for action in self.actions})
+
     def choose_action(self, state, greedy=False):
         if not greedy and self.rng.random() < self.epsilon:
             return self.rng.choice(self.actions)
-        values = self._action_values(state)
+        values = self._peek_values(state)
         best_value = max(values.values())
         best_actions = [a for a, v in values.items() if v == best_value]
         return self.rng.choice(best_actions)
