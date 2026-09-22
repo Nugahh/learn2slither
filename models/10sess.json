@@ -1,0 +1,124 @@
+{
+  "actions": [
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT"
+  ],
+  "alpha": 0.1,
+  "episodes_trained": 10,
+  "epsilon": 0.9511101304657719,
+  "epsilon_decay": 0.995,
+  "epsilon_min": 0.01,
+  "gamma": 0.9,
+  "q_table": {
+    "S|G|W|G": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": -0.1
+    },
+    "S|G|W|W": {
+      "DOWN": -0.1,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "S|W|G|W": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": -5.0
+    },
+    "S|W|R|W": {
+      "DOWN": 0.0,
+      "LEFT": -0.19,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "S|W|W|G": {
+      "DOWN": 0.0,
+      "LEFT": -0.1,
+      "RIGHT": -0.1,
+      "UP": -0.1
+    },
+    "S|W|W|R": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": -5.0
+    },
+    "S|W|W|W": {
+      "DOWN": -0.34390000000000004,
+      "LEFT": 0.0,
+      "RIGHT": -0.19,
+      "UP": -9.5
+    },
+    "W|G|R|S": {
+      "DOWN": 0.0,
+      "LEFT": -1.0,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "W|G|S|G": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": -0.1
+    },
+    "W|G|S|W": {
+      "DOWN": 0.0,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": -0.1
+    },
+    "W|G|W|S": {
+      "DOWN": -0.1,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "W|R|S|G": {
+      "DOWN": 0.0,
+      "LEFT": -5.0,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "W|S|W|W": {
+      "DOWN": -5.0,
+      "LEFT": -0.34390000000000004,
+      "RIGHT": -0.1,
+      "UP": 0.0
+    },
+    "W|W|R|S": {
+      "DOWN": 0.0,
+      "LEFT": -0.1,
+      "RIGHT": -5.0,
+      "UP": 0.0
+    },
+    "W|W|S|G": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": -0.19,
+      "UP": 0.0
+    },
+    "W|W|S|R": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": -0.1
+    },
+    "W|W|S|W": {
+      "DOWN": -0.34390000000000004,
+      "LEFT": -9.5,
+      "RIGHT": -0.1,
+      "UP": -0.1
+    },
+    "W|W|W|S": {
+      "DOWN": -0.34390000000000004,
+      "LEFT": -5.171000000000001,
+      "RIGHT": -0.19,
+      "UP": 0.0
+    }
+  }
+}
