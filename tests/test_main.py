@@ -90,3 +90,33 @@ def test_load_prints_load_message(tmp_path):
 
     assert result.returncode == 0, result.stderr
     assert f"Load trained model from {model_path}" in result.stdout
+
+
+def test_invalid_board_size_fails_cleanly():
+    result = run_snake(["-board-size", "1", "-sessions", "1"])
+
+    assert result.returncode == 1
+    assert "Traceback" not in result.stderr
+    assert "-board-size must be at least" in result.stdout
+
+
+def test_bad_load_path_fails_cleanly():
+    result = run_snake([
+        "-load", "/nonexistent/model.json", "-sessions", "1",
+    ])
+
+    assert result.returncode == 1
+    assert "Traceback" not in result.stderr
+    assert "could not load model" in result.stdout
+
+
+def test_bad_save_directory_fails_before_running_sessions(tmp_path):
+    bad_path = tmp_path / "does-not-exist" / "model.json"
+
+    result = run_snake(["-save", str(bad_path), "-sessions", "5"])
+
+    assert result.returncode == 1
+    assert "Traceback" not in result.stderr
+    assert "directory for -save does not exist" in result.stdout
+    assert "Game over" not in result.stdout
+    assert not bad_path.exists()

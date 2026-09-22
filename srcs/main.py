@@ -1,5 +1,6 @@
 """CLI entry point: parses arguments and runs training/play sessions."""
 import argparse
+import os
 import sys
 
 from srcs import config
@@ -65,9 +66,25 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
 def main(argv=None):
     args = parse_args(sys.argv[1:] if argv is None else argv)
 
+    if args.board_size < config.INITIAL_SNAKE_LENGTH:
+        print(f"Error: -board-size must be at least "
+              f"{config.INITIAL_SNAKE_LENGTH} (got {args.board_size})")
+        return 1
+
+    if args.save:
+        save_dir = os.path.dirname(args.save)
+        if save_dir and not os.path.isdir(save_dir):
+            print(f"Error: directory for -save does not exist: "
+                  f"{save_dir}")
+            return 1
+
     agent = QLearningAgent()
     if args.load:
-        agent.load(args.load)
+        try:
+            agent.load(args.load)
+        except (OSError, ValueError, KeyError) as exc:
+            print(f"Error: could not load model from {args.load}: {exc}")
+            return 1
         print(f"Load trained model from {args.load}")
 
     board = Board(size=args.board_size)
@@ -86,8 +103,12 @@ def main(argv=None):
                 args.step_by_step, args.speed)
             if learning_enabled:
                 agent.decay_epsilon()
-            print(f"Game over, max length = {max_length}, "
-                  f"max duration = {steps}")
+            if board.done:
+                print(f"Game over, max length = {max_length}, "
+                      f"max duration = {steps}")
+            else:
+                print(f"Session capped at {steps} steps, "
+                      f"max length = {max_length}")
     finally:
         if display is not None:
             display.close()
