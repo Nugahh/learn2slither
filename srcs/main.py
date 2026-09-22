@@ -35,7 +35,7 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
     max_length = len(board.snake)
     steps = 0
 
-    while not board.done:
+    while not board.done and steps < config.MAX_STEPS_PER_SESSION:
         if display is not None:
             display.render(board)
             print(format_vision(board))

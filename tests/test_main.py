@@ -4,6 +4,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from srcs import config
+from srcs.environment import Board
+from srcs.main import run_session
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SNAKE = REPO_ROOT / "snake"
 
@@ -49,6 +53,33 @@ def test_dontlearn_does_not_change_q_table(tmp_path):
 
     assert data_a["q_table"] == data_b["q_table"]
     assert data_a["episodes_trained"] == data_b["episodes_trained"]
+
+
+def test_run_session_stops_at_max_steps_to_avoid_infinite_loop():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5)]
+    board.green_apples = {(0, 0), (0, 1)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    class OscillatingAgent:
+        def __init__(self):
+            self._actions = ("UP", "DOWN")
+            self._count = 0
+
+        def choose_action(self, state, greedy=False):
+            action = self._actions[self._count % 2]
+            self._count += 1
+            return action
+
+    max_length, steps = run_session(
+        board, OscillatingAgent(), learning_enabled=False,
+        display=None, step_by_step=False, speed=config.DEFAULT_SPEED)
+
+    assert steps == config.MAX_STEPS_PER_SESSION
+    assert board.done is False
+    assert max_length == 1
 
 
 def test_load_prints_load_message(tmp_path):
