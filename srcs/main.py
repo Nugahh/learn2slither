@@ -82,7 +82,7 @@ def main(argv=None):
     if args.load:
         try:
             agent.load(args.load)
-        except (OSError, ValueError, KeyError) as exc:
+        except Exception as exc:
             print(f"Error: could not load model from {args.load}: {exc}")
             return 1
         print(f"Load trained model from {args.load}")

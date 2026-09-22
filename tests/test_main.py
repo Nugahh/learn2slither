@@ -120,3 +120,34 @@ def test_bad_save_directory_fails_before_running_sessions(tmp_path):
     assert "directory for -save does not exist" in result.stdout
     assert "Game over" not in result.stdout
     assert not bad_path.exists()
+
+
+def test_load_of_json_array_fails_cleanly(tmp_path):
+    bad_model = tmp_path / "array.json"
+    bad_model.write_text("[]")
+
+    result = run_snake(["-load", str(bad_model), "-sessions", "1"])
+
+    assert result.returncode == 1
+    assert "Traceback" not in result.stderr
+    assert "could not load model" in result.stdout
+
+
+def test_load_of_wrong_field_type_fails_cleanly(tmp_path):
+    bad_model = tmp_path / "bad_qtable.json"
+    bad_model.write_text(json.dumps({
+        "actions": ["UP", "DOWN", "LEFT", "RIGHT"],
+        "alpha": 0.1,
+        "gamma": 0.9,
+        "epsilon": 1.0,
+        "epsilon_min": 0.01,
+        "epsilon_decay": 0.995,
+        "episodes_trained": 0,
+        "q_table": "not-a-dict",
+    }))
+
+    result = run_snake(["-load", str(bad_model), "-sessions", "1"])
+
+    assert result.returncode == 1
+    assert "Traceback" not in result.stderr
+    assert "could not load model" in result.stdout
