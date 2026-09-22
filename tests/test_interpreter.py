@@ -15,10 +15,12 @@ def test_format_vision_matches_subject_example():
     board.green_apples = {(2, 9), (0, 0)}
     board.red_apple = (3, 9)
 
+    pad = " " * 10
     expected = "\n".join([
-        "W", "0", "0", "G", "R", "0", "0", "0",
+        pad + "W", pad + "0", pad + "0", pad + "G", pad + "R",
+        pad + "0", pad + "0", pad + "0",
         "W000000000HW",
-        "S", "0", "W",
+        pad + "S", pad + "0", pad + "W",
     ])
 
     assert format_vision(board) == expected

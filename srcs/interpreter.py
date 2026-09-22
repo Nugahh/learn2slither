@@ -19,11 +19,12 @@ def _cell_symbol(board, row, col):
 
 def format_vision(board):
     head_row, head_col = board.snake[0]
-    up_lines = [_cell_symbol(board, r, head_col)
+    padding = " " * (head_col + 1)
+    up_lines = [padding + _cell_symbol(board, r, head_col)
                 for r in range(-1, head_row)]
     row_line = "".join(_cell_symbol(board, head_row, c)
                        for c in range(-1, board.size + 1))
-    down_lines = [_cell_symbol(board, r, head_col)
+    down_lines = [padding + _cell_symbol(board, r, head_col)
                   for r in range(head_row + 1, board.size + 1)]
     return "\n".join(up_lines + [row_line] + down_lines)
 
