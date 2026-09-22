@@ -15,7 +15,7 @@ train:
 	$(VENV_BIN)/python3 ./snake -sessions 100 -visual off -save models/100sess.json
 
 play:
-	$(VENV_BIN)/python3 ./snake -visual on -load models/20000sess.json -sessions 5 -dontlearn -speed 8
+	$(VENV_BIN)/python3 ./snake -lobby
 
 test:
 	$(VENV_BIN)/pytest -q

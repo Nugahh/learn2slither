@@ -2,8 +2,8 @@
 import pygame
 
 from srcs.lobby import (
-    Settings, Stepper, Toggle, compute_stats, default_save_path,
-    list_available_models, run_config_screen, run_results_screen,
+    DEFAULT_MODEL_PATH, Settings, Stepper, Toggle, compute_stats,
+    default_save_path, run_config_screen, run_results_screen,
 )
 
 
@@ -52,24 +52,6 @@ def test_toggle_flip():
     assert toggle.value is False
 
 
-def test_list_available_models_finds_json_files(tmp_path):
-    models_dir = tmp_path / "models"
-    models_dir.mkdir()
-    (models_dir / "a.json").write_text("{}")
-    (models_dir / "b.json").write_text("{}")
-    (models_dir / "c.txt").write_text("not json")
-
-    found = list_available_models(str(models_dir))
-
-    assert found == sorted([
-        str(models_dir / "a.json"), str(models_dir / "b.json"),
-    ])
-
-
-def test_list_available_models_missing_dir_returns_empty():
-    assert list_available_models("/nonexistent/path") == []
-
-
 def test_default_save_path_format():
     path = default_save_path()
     assert path.startswith("models/lobby_")
@@ -93,6 +75,19 @@ def test_run_config_screen_returns_none_on_quit_event(monkeypatch):
     monkeypatch.setattr(pygame.event, "get", lambda: [quit_event])
 
     assert run_config_screen() is None
+
+
+def test_run_config_screen_defaults_to_best_model_on_immediate_play(
+        monkeypatch):
+    play_button_pos = (320, 512)
+    monkeypatch.setattr(pygame.mouse, "get_pos", lambda: play_button_pos)
+    click_event = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1)
+    monkeypatch.setattr(pygame.event, "get", lambda: [click_event])
+
+    settings = run_config_screen()
+
+    assert settings is not None
+    assert settings.load == DEFAULT_MODEL_PATH
 
 
 def test_run_results_screen_quits_cleanly_on_quit_event(monkeypatch):

@@ -1,6 +1,4 @@
 """Graphical lobby: configuration panel and end-of-session results."""
-import glob
-import os
 import time
 
 import pygame
@@ -9,6 +7,8 @@ from srcs import config
 
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 560
+
+DEFAULT_MODEL_PATH = "models/20000sess.json"
 
 COLOR_BACKGROUND = (24, 24, 28)
 COLOR_PANEL = (36, 36, 42)
@@ -78,12 +78,6 @@ class Button:
         screen.blit(text_surf, text_surf.get_rect(center=self.rect.center))
 
 
-def list_available_models(models_dir="models"):
-    if not os.path.isdir(models_dir):
-        return []
-    return sorted(glob.glob(os.path.join(models_dir, "*.json")))
-
-
 def default_save_path():
     return f"models/lobby_{int(time.time())}.json"
 
@@ -123,9 +117,11 @@ def run_config_screen():
     row_height = 44
     minus_buttons = {}
     plus_buttons = {}
+    value_rects = {}
     y = 100
     for stepper in steppers:
-        minus_buttons[stepper.label] = Button((280, y, 32, 32), "-")
+        minus_buttons[stepper.label] = Button((300, y, 32, 32), "-")
+        value_rects[stepper.label] = pygame.Rect(332, y, 88, 32)
         plus_buttons[stepper.label] = Button((420, y, 32, 32), "+")
         y += row_height
 
@@ -134,12 +130,7 @@ def run_config_screen():
         toggle_buttons[toggle.label] = Button((420, y, 90, 32), "")
         y += row_height
 
-    model_files = list_available_models()
-    models_label_y = y + 10
-    model_buttons = {}
-    for index, path in enumerate(model_files):
-        model_buttons[path] = Button(
-            (60, models_label_y + 24 + index * 28, 520, 24), path)
+    model_info_y = y + 10
 
     save_field_rect = pygame.Rect(60, WINDOW_HEIGHT - 130, 480, 32)
     play_button = Button(
@@ -147,7 +138,7 @@ def run_config_screen():
 
     save_path = default_save_path()
     editing_save_path = False
-    selected_load_path = None
+    selected_load_path = DEFAULT_MODEL_PATH
     running = True
 
     while running:
@@ -164,9 +155,6 @@ def run_config_screen():
                 for toggle in toggles:
                     if toggle_buttons[toggle.label].is_hovered(mouse_pos):
                         toggle.flip()
-                for path, button in model_buttons.items():
-                    if button.is_hovered(mouse_pos):
-                        selected_load_path = path
                 editing_save_path = save_field_rect.collidepoint(mouse_pos)
                 if play_button.is_hovered(mouse_pos):
                     running = False
@@ -184,10 +172,12 @@ def run_config_screen():
 
         y = 100
         for stepper in steppers:
-            label_surf = font.render(
-                f"{stepper.label}: {stepper.value}", True, COLOR_TEXT)
+            label_surf = font.render(stepper.label, True, COLOR_TEXT)
             screen.blit(label_surf, (60, y + 4))
             minus_buttons[stepper.label].draw(screen, font, mouse_pos)
+            value_surf = font.render(str(stepper.value), True, COLOR_TEXT)
+            screen.blit(value_surf, value_surf.get_rect(
+                center=value_rects[stepper.label].center))
             plus_buttons[stepper.label].draw(screen, font, mouse_pos)
             y += row_height
 
@@ -203,15 +193,9 @@ def run_config_screen():
                 state_surf, state_surf.get_rect(center=button.rect.center))
             y += row_height
 
-        models_label_surf = font.render(
-            "Charger un modele :", True, COLOR_MUTED)
-        screen.blit(models_label_surf, (60, models_label_y))
-        for path, button in model_buttons.items():
-            is_selected = path == selected_load_path
-            color = COLOR_ACCENT if is_selected else COLOR_PANEL
-            pygame.draw.rect(screen, color, button.rect, border_radius=4)
-            text_surf = font.render(path, True, COLOR_TEXT)
-            screen.blit(text_surf, (button.rect.x + 8, button.rect.y + 3))
+        model_info_surf = font.render(
+            f"Modele : {selected_load_path}", True, COLOR_MUTED)
+        screen.blit(model_info_surf, (60, model_info_y))
 
         save_label_surf = font.render(
             "Sauvegarder sous :", True, COLOR_MUTED)
