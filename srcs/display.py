@@ -1,18 +1,48 @@
 """Pygame rendering for the Learn2Slither board."""
+import os
+
 import pygame
 
 from srcs import config
 
-COLOR_BACKGROUND = (30, 30, 30)
-COLOR_GRID = (60, 60, 60)
-COLOR_SNAKE = (50, 90, 220)
-COLOR_GREEN_APPLE = (40, 200, 60)
-COLOR_RED_APPLE = (210, 40, 40)
+GRAPHICS_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "graphics")
+
+BG_LIGHT = (170, 215, 81)
+BG_DARK = (162, 209, 73)
 COLOR_OVERLAY = (0, 0, 0)
 COLOR_GAME_OVER = (230, 80, 80)
 COLOR_CAPPED = (230, 200, 80)
 COLOR_SCORE_TEXT = (230, 230, 230)
 COLOR_HINT_TEXT = (170, 170, 175)
+
+SPRITE_NAMES = (
+    "apple", "apple_rot",
+    "head_up", "head_down", "head_left", "head_right",
+    "body_horizontal", "body_vertical",
+    "body_topleft", "body_topright",
+    "body_bottomleft", "body_bottomright",
+    "tail_up", "tail_down", "tail_left", "tail_right",
+)
+
+BODY_SPRITE_NAMES = {
+    frozenset({"up", "down"}): "body_vertical",
+    frozenset({"left", "right"}): "body_horizontal",
+    frozenset({"up", "left"}): "body_topleft",
+    frozenset({"up", "right"}): "body_topright",
+    frozenset({"down", "left"}): "body_bottomleft",
+    frozenset({"down", "right"}): "body_bottomright",
+}
+
+
+def direction_between(from_pos, to_pos):
+    delta_row = to_pos[0] - from_pos[0]
+    if delta_row < 0:
+        return "up"
+    if delta_row > 0:
+        return "down"
+    delta_col = to_pos[1] - from_pos[1]
+    return "left" if delta_col < 0 else "right"
 
 
 class Display:
@@ -24,27 +54,67 @@ class Display:
         self.screen = pygame.display.set_mode((size_px, size_px))
         pygame.display.set_caption("Snake Game")
         self.clock = pygame.time.Clock()
+        self._sprites = self._load_sprites()
+
+    def _load_sprites(self):
+        sprites = {}
+        for name in SPRITE_NAMES:
+            path = os.path.join(GRAPHICS_DIR, f"{name}.png")
+            image = pygame.image.load(path).convert_alpha()
+            if image.get_size() != (self.cell_px, self.cell_px):
+                image = pygame.transform.smoothscale(
+                    image, (self.cell_px, self.cell_px))
+            sprites[name] = image
+        sprites["apple_green"] = sprites.pop("apple")
+        sprites["apple_red"] = sprites.pop("apple_rot")
+        return sprites
 
     def render(self, board):
         self._handle_quit_events()
-        self.screen.fill(COLOR_BACKGROUND)
-        for row in range(board.size):
-            for col in range(board.size):
-                rect = (col * self.cell_px, row * self.cell_px,
-                        self.cell_px, self.cell_px)
-                pygame.draw.rect(self.screen, COLOR_GRID, rect, 1)
-        for row, col in board.green_apples:
-            self._draw_cell(row, col, COLOR_GREEN_APPLE)
+        self._draw_background(board.size)
+
         if board.red_apple is not None:
-            self._draw_cell(*board.red_apple, COLOR_RED_APPLE)
-        for row, col in board.snake:
-            self._draw_cell(row, col, COLOR_SNAKE)
+            self._draw_sprite(
+                self._sprites["apple_red"], *board.red_apple)
+        for row, col in board.green_apples:
+            self._draw_sprite(self._sprites["apple_green"], row, col)
+
+        for index in range(len(board.snake)):
+            sprite = self._sprite_for_segment(board.snake, index)
+            self._draw_sprite(sprite, *board.snake[index])
+
         pygame.display.flip()
 
-    def _draw_cell(self, row, col, color):
-        rect = (col * self.cell_px, row * self.cell_px,
-                self.cell_px, self.cell_px)
-        pygame.draw.rect(self.screen, color, rect)
+    def _draw_background(self, board_size):
+        for row in range(board_size):
+            for col in range(board_size):
+                color = BG_LIGHT if (row + col) % 2 == 0 else BG_DARK
+                rect = (col * self.cell_px, row * self.cell_px,
+                        self.cell_px, self.cell_px)
+                pygame.draw.rect(self.screen, color, rect)
+
+    def _draw_sprite(self, sprite, row, col):
+        self.screen.blit(sprite, (col * self.cell_px, row * self.cell_px))
+
+    def _sprite_for_segment(self, snake, index):
+        position = snake[index]
+
+        if len(snake) == 1:
+            return self._sprites["head_up"]
+
+        if index == 0:
+            direction = direction_between(snake[1], position)
+            return self._sprites[f"head_{direction}"]
+
+        if index == len(snake) - 1:
+            direction = direction_between(snake[index - 1], position)
+            return self._sprites[f"tail_{direction}"]
+
+        direction_to_head = direction_between(position, snake[index - 1])
+        direction_to_tail = direction_between(position, snake[index + 1])
+        sprite_name = BODY_SPRITE_NAMES[
+            frozenset({direction_to_head, direction_to_tail})]
+        return self._sprites[sprite_name]
 
     def tick(self, speed):
         self.clock.tick(speed)

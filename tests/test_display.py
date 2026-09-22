@@ -1,12 +1,39 @@
 """Smoke tests for the Pygame display (headless via SDL dummy driver)."""
 import random
 
-from srcs.display import Display
+from srcs.display import Display, direction_between
 from srcs.environment import Board
+
+
+def test_direction_between_detects_all_four_directions():
+    assert direction_between((5, 5), (4, 5)) == "up"
+    assert direction_between((5, 5), (6, 5)) == "down"
+    assert direction_between((5, 5), (5, 4)) == "left"
+    assert direction_between((5, 5), (5, 6)) == "right"
 
 
 def test_display_renders_without_crashing():
     board = Board(size=10, rng=random.Random(0))
+    display = Display(board_size=10, cell_px=8)
+    try:
+        display.render(board)
+    finally:
+        display.close()
+
+
+def test_display_renders_snake_with_corner_without_crashing():
+    board = Board(size=10, rng=random.Random(0))
+    board.snake = [(5, 6), (5, 5), (4, 5)]
+    display = Display(board_size=10, cell_px=8)
+    try:
+        display.render(board)
+    finally:
+        display.close()
+
+
+def test_display_renders_length_one_snake_without_crashing():
+    board = Board(size=10, rng=random.Random(0))
+    board.snake = [(5, 5)]
     display = Display(board_size=10, cell_px=8)
     try:
         display.render(board)
