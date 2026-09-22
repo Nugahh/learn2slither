@@ -61,6 +61,9 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
             else:
                 display.tick(speed)
 
+    if display is not None:
+        display.show_game_over(max_length, steps, board.done)
+
     return max_length, steps
 
 

@@ -8,6 +8,11 @@ COLOR_GRID = (60, 60, 60)
 COLOR_SNAKE = (50, 90, 220)
 COLOR_GREEN_APPLE = (40, 200, 60)
 COLOR_RED_APPLE = (210, 40, 40)
+COLOR_OVERLAY = (0, 0, 0)
+COLOR_GAME_OVER = (230, 80, 80)
+COLOR_CAPPED = (230, 200, 80)
+COLOR_SCORE_TEXT = (230, 230, 230)
+COLOR_HINT_TEXT = (170, 170, 175)
 
 
 class Display:
@@ -43,6 +48,39 @@ class Display:
 
     def tick(self, speed):
         self.clock.tick(speed)
+
+    def show_game_over(self, max_length, steps, died):
+        self._handle_quit_events()
+
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(180)
+        overlay.fill(COLOR_OVERLAY)
+        self.screen.blit(overlay, (0, 0))
+
+        title_font = pygame.font.SysFont(None, 48, bold=True)
+        text_font = pygame.font.SysFont(None, 26)
+
+        title = "GAME OVER" if died else "SESSION CAPPED"
+        title_color = COLOR_GAME_OVER if died else COLOR_CAPPED
+        title_surf = title_font.render(title, True, title_color)
+        score_surf = text_font.render(
+            f"Longueur : {max_length}    Duree : {steps}",
+            True, COLOR_SCORE_TEXT)
+        hint_surf = text_font.render(
+            "Espace / fleche droite / Entree pour continuer",
+            True, COLOR_HINT_TEXT)
+
+        center = (self.screen.get_width() // 2,
+                  self.screen.get_height() // 2)
+        self.screen.blit(title_surf, title_surf.get_rect(
+            center=(center[0], center[1] - 30)))
+        self.screen.blit(score_surf, score_surf.get_rect(
+            center=(center[0], center[1] + 15)))
+        self.screen.blit(hint_surf, hint_surf.get_rect(
+            center=(center[0], center[1] + 45)))
+
+        pygame.display.flip()
+        self.wait_for_step()
 
     def wait_for_step(self):
         while True:
