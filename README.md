@@ -53,6 +53,23 @@ Regarder jouer un modèle déjà entraîné, en continu, sans apprentissage :
 Raccourcis Makefile : `make train` (entraînement d'exemple), `make play`
 (rejoue `models/20000sess.json` en mode exploitation).
 
+### Lobby graphique (bonus)
+
+```bash
+./snake            # sans aucun argument
+./snake -lobby      # ou explicitement, même combiné à d'autres usages
+```
+
+Ouvre un panneau de configuration graphique (sessions, taille du plateau,
+vitesse, apprentissage on/off, pas-à-pas, choix d'un modèle à charger parmi
+ceux détectés dans `models/`, chemin de sauvegarde) au lieu des flags en
+ligne de commande. À la fin des sessions, un écran de résultats affiche
+longueur moyenne/max, durée moyenne, % de sessions plafonnées, et un
+graphique de progression, avec les boutons Rejouer / Menu / Quitter.
+
+N'importe quel autre appel (avec au moins un flag existant) utilise le
+flux CLI classique ci-dessus, inchangé.
+
 ## Modèles fournis
 
 Le dossier `models/` contient des modèles entraînés à différents stades pour
@@ -79,8 +96,23 @@ make test    # suite de tests (pytest)
 make norm    # vérification de la norme (flake8)
 ```
 
-34 tests couvrant chaque module indépendamment (règles du plateau, vision,
-apprentissage, affichage, CLI).
+49 tests couvrant chaque module indépendamment (règles du plateau, vision,
+apprentissage, affichage, CLI, lobby).
+
+## Bonus implémentés
+
+- **Longueur élevée en fin de session** : voir le tableau ci-dessus
+  (`models/20000sess.json`, jusqu'à 35+ de façon reproductible).
+- **Affichage soigné** : lobby graphique avec panneau de configuration et
+  écran de résultats/statistiques (voir ci-dessus).
+- **Taille de plateau variable** : `-board-size N` (min. 3), un modèle
+  entraîné en 10x10 rejoue sans problème sur une autre taille — validé
+  manuellement (3, 5, 10, 20 ; longueur 43 atteinte en 20x20) et par un
+  test automatisé
+  (`tests/test_main.py::test_model_trained_on_default_board_plays_on_different_size`).
+
+Détails et preuves complètes dans
+`docs/superpowers/specs/2026-09-22-bonus-features-design.md`.
 
 ## Structure du projet
 
@@ -90,8 +122,9 @@ srcs/
 ├── environment.py    # Board : grille, serpent, pommes, règles de collision
 ├── interpreter.py    # plateau → vision terminale + état compact pour la Q-table
 ├── agent.py           # Q-learning : choix d'action, apprentissage, sauvegarde/chargement
-├── display.py         # affichage graphique (Pygame)
-└── main.py             # ligne de commande + boucle d'entraînement/jeu
+├── display.py         # affichage graphique du jeu (Pygame)
+├── lobby.py            # lobby graphique : config + résultats (bonus)
+└── main.py             # ligne de commande + routage lobby + boucle de sessions
 
 tests/        # tests unitaires et d'intégration, un fichier par module
 models/       # modèles Q-table entraînés (JSON)
