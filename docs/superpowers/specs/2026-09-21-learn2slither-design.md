@@ -79,6 +79,18 @@ et complique les tests unitaires par partie — écarté.
   des oscillations stériles en mode glouton. Le palier de distance reste
   strictement dérivé de la vision du serpent (aucune information hors
   champ n'est ajoutée).
+- **Dernière action jouée** : ajoutée comme 5e composant de l'état (dans
+  `srcs/main.py`, pas dans l'Interpreter) pour aider à distinguer deux
+  positions qui se ressemblent selon la vision compacte mais où le serpent
+  vient de faire des choses différentes — ça casse le cas le plus fréquent
+  d'oscillation stérile (répéter UP/DOWN ou LEFT/RIGHT en boucle). Ce n'est
+  pas une information du plateau : c'est la mémoire de l'agent de son
+  propre dernier geste, donc toujours conforme à la contrainte de vision.
+  Espace d'états total ≈ 20736 × 4 ≈ 83000 combinaisons max (toujours peu
+  visité en pratique). Ne supprime pas toutes les boucles possibles (un
+  agent purement réactif, sans planification globale, peut toujours tracer
+  un cycle géométrique plus long sans jamais entrer en collision avec
+  lui-même), mais réduit nettement leur fréquence.
 - Aucune information non visible par le serpent n'est fournie à l'agent
   (contrainte du sujet, pénalité -42 sinon).
 

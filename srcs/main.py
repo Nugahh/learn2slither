@@ -32,7 +32,7 @@ def parse_args(argv):
 def run_session(board, agent, learning_enabled, display, step_by_step,
                 speed):
     board.reset()
-    state = get_compact_state(board)
+    state = get_compact_state(board) + (config.NO_PREVIOUS_ACTION,)
     max_length = len(board.snake)
     steps = 0
 
@@ -47,7 +47,8 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
 
         event = board.step(action)
         reward = REWARDS[event]
-        next_state = None if board.done else get_compact_state(board)
+        next_state = (None if board.done
+                      else get_compact_state(board) + (action,))
         if learning_enabled:
             agent.learn(state, action, reward, next_state, board.done)
         state = next_state

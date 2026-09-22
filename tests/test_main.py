@@ -82,6 +82,32 @@ def test_run_session_stops_at_max_steps_to_avoid_infinite_loop():
     assert max_length == 1
 
 
+def test_state_includes_last_action_to_help_break_cycles():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5), (5, 4), (5, 3)]
+    board.green_apples = {(0, 0), (0, 1)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    captured_states = []
+
+    class RecordingAgent:
+        def choose_action(self, state, greedy=False):
+            captured_states.append(state)
+            return "RIGHT"
+
+        def learn(self, *args, **kwargs):
+            pass
+
+    run_session(board, RecordingAgent(), learning_enabled=False,
+                display=None, step_by_step=False, speed=config.DEFAULT_SPEED)
+
+    assert len(captured_states[0]) == 5
+    assert captured_states[0][-1] == config.NO_PREVIOUS_ACTION
+    assert captured_states[1][-1] == "RIGHT"
+
+
 def test_load_prints_load_message(tmp_path):
     model_path = tmp_path / "model.json"
     run_snake(["-sessions", "1", "-save", str(model_path)])
