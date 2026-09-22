@@ -51,21 +51,23 @@ Regarder jouer un modèle déjà entraîné, en continu, sans apprentissage :
 ```
 
 Raccourcis Makefile : `make train` (entraînement d'exemple), `make play`
-(rejoue `models/20000sess.json` en mode exploitation).
+(ouvre le lobby graphique).
 
 ### Lobby graphique (bonus)
 
 ```bash
 ./snake            # sans aucun argument
 ./snake -lobby      # ou explicitement, même combiné à d'autres usages
+make play           # raccourci équivalent
 ```
 
 Ouvre un panneau de configuration graphique (sessions, taille du plateau,
-vitesse, apprentissage on/off, pas-à-pas, choix d'un modèle à charger parmi
-ceux détectés dans `models/`, chemin de sauvegarde) au lieu des flags en
-ligne de commande. À la fin des sessions, un écran de résultats affiche
-longueur moyenne/max, durée moyenne, % de sessions plafonnées, et un
-graphique de progression, avec les boutons Rejouer / Menu / Quitter.
+vitesse — chiffre entre les boutons `-`/`+` —, apprentissage on/off,
+pas-à-pas, chemin de sauvegarde). Le modèle chargé par défaut est
+`models/20000sess.json` (le plus performant) ; son chemin est affiché à
+l'écran. À la fin des sessions, un écran de résultats affiche longueur
+moyenne/max, durée moyenne, % de sessions plafonnées, et un graphique de
+progression, avec les boutons Rejouer / Menu / Quitter.
 
 N'importe quel autre appel (avec au moins un flag existant) utilise le
 flux CLI classique ci-dessus, inchangé.
@@ -96,7 +98,7 @@ make test    # suite de tests (pytest)
 make norm    # vérification de la norme (flake8)
 ```
 
-49 tests couvrant chaque module indépendamment (règles du plateau, vision,
+48 tests couvrant chaque module indépendamment (règles du plateau, vision,
 apprentissage, affichage, CLI, lobby).
 
 ## Bonus implémentés
