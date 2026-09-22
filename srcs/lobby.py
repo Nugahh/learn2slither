@@ -104,41 +104,56 @@ def run_config_screen():
     title_font = pygame.font.SysFont(None, TITLE_SIZE, bold=True)
     clock = pygame.time.Clock()
 
-    steppers = [
-        Stepper("Sessions", 100, 1, 100000, step=10),
-        Stepper("Board size", config.BOARD_SIZE, 3, 40, step=1),
-        Stepper("Speed", int(config.DEFAULT_SPEED), 1, 200, step=10),
-    ]
+    speed_stepper = Stepper(
+        "Speed", int(config.DEFAULT_SPEED), 1, 200, step=10)
+    board_size_stepper = Stepper("Board size", config.BOARD_SIZE, 3, 40)
+    sessions_stepper = Stepper("Sessions", 100, 1, 100000, step=10)
     dontlearn_toggle = Toggle("Learning disabled (-dontlearn)", False)
     step_toggle = Toggle("Step-by-step", False)
     save_enabled_toggle = Toggle("Save model", True)
-    toggles = [dontlearn_toggle, step_toggle, save_enabled_toggle]
+    params_toggles = [dontlearn_toggle, step_toggle, save_enabled_toggle]
 
     row_height = 44
-    minus_buttons = {}
-    plus_buttons = {}
-    value_rects = {}
-    y = 100
-    for stepper in steppers:
-        minus_buttons[stepper.label] = Button((300, y, 32, 32), "-")
-        value_rects[stepper.label] = pygame.Rect(332, y, 88, 32)
-        plus_buttons[stepper.label] = Button((420, y, 32, 32), "+")
+
+    # --- Home screen widgets: only speed, board size, and PLAY ---
+    home_steppers = [speed_stepper, board_size_stepper]
+    home_minus = {}
+    home_plus = {}
+    home_value_rects = {}
+    y = 120
+    for stepper in home_steppers:
+        home_minus[stepper.label] = Button((300, y, 32, 32), "-")
+        home_value_rects[stepper.label] = pygame.Rect(332, y, 88, 32)
+        home_plus[stepper.label] = Button((420, y, 32, 32), "+")
         y += row_height
 
-    toggle_buttons = {}
-    for toggle in toggles:
-        toggle_buttons[toggle.label] = Button((420, y, 90, 32), "")
-        y += row_height
-
-    model_info_y = y + 10
-
-    save_field_rect = pygame.Rect(60, WINDOW_HEIGHT - 130, 480, 32)
+    model_info_y = y + 20
     play_button = Button(
-        (WINDOW_WIDTH // 2 - 70, WINDOW_HEIGHT - 70, 140, 44), "JOUER")
+        (WINDOW_WIDTH // 2 - 90, model_info_y + 50, 180, 56), "PLAY")
+    params_open_button = Button(
+        (WINDOW_WIDTH // 2 - 80, model_info_y + 120, 160, 40),
+        "Parametres")
+
+    # --- Parameters screen widgets: sessions, learning, save ---
+    y = 100
+    sessions_minus = Button((300, y, 32, 32), "-")
+    sessions_value_rect = pygame.Rect(332, y, 88, 32)
+    sessions_plus = Button((420, y, 32, 32), "+")
+    y += row_height
+
+    params_toggle_buttons = {}
+    for toggle in params_toggles:
+        params_toggle_buttons[toggle.label] = Button((420, y, 90, 32), "")
+        y += row_height
+
+    save_field_rect = pygame.Rect(60, y + 20, 480, 32)
+    back_button = Button(
+        (WINDOW_WIDTH // 2 - 70, WINDOW_HEIGHT - 70, 140, 44), "Retour")
 
     save_path = default_save_path()
     editing_save_path = False
     selected_load_path = DEFAULT_MODEL_PATH
+    active_screen = "home"
     running = True
 
     while running:
@@ -147,17 +162,29 @@ def run_config_screen():
             if event.type == pygame.QUIT:
                 return None
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for stepper in steppers:
-                    if minus_buttons[stepper.label].is_hovered(mouse_pos):
-                        stepper.decrement()
-                    if plus_buttons[stepper.label].is_hovered(mouse_pos):
-                        stepper.increment()
-                for toggle in toggles:
-                    if toggle_buttons[toggle.label].is_hovered(mouse_pos):
-                        toggle.flip()
-                editing_save_path = save_field_rect.collidepoint(mouse_pos)
-                if play_button.is_hovered(mouse_pos):
-                    running = False
+                if active_screen == "home":
+                    for stepper in home_steppers:
+                        if home_minus[stepper.label].is_hovered(mouse_pos):
+                            stepper.decrement()
+                        if home_plus[stepper.label].is_hovered(mouse_pos):
+                            stepper.increment()
+                    if play_button.is_hovered(mouse_pos):
+                        running = False
+                    if params_open_button.is_hovered(mouse_pos):
+                        active_screen = "params"
+                else:
+                    if sessions_minus.is_hovered(mouse_pos):
+                        sessions_stepper.decrement()
+                    if sessions_plus.is_hovered(mouse_pos):
+                        sessions_stepper.increment()
+                    for toggle in params_toggles:
+                        button = params_toggle_buttons[toggle.label]
+                        if button.is_hovered(mouse_pos):
+                            toggle.flip()
+                    editing_save_path = save_field_rect.collidepoint(
+                        mouse_pos)
+                    if back_button.is_hovered(mouse_pos):
+                        active_screen = "home"
             elif event.type == pygame.KEYDOWN and editing_save_path:
                 if event.key == pygame.K_BACKSPACE:
                     save_path = save_path[:-1]
@@ -167,60 +194,102 @@ def run_config_screen():
                 save_path += event.text
 
         screen.fill(COLOR_BACKGROUND)
-        title_surf = title_font.render("Learn2Slither", True, COLOR_ACCENT)
-        screen.blit(title_surf, (60, 30))
 
-        y = 100
-        for stepper in steppers:
-            label_surf = font.render(stepper.label, True, COLOR_TEXT)
-            screen.blit(label_surf, (60, y + 4))
-            minus_buttons[stepper.label].draw(screen, font, mouse_pos)
-            value_surf = font.render(str(stepper.value), True, COLOR_TEXT)
-            screen.blit(value_surf, value_surf.get_rect(
-                center=value_rects[stepper.label].center))
-            plus_buttons[stepper.label].draw(screen, font, mouse_pos)
-            y += row_height
-
-        for toggle in toggles:
-            label_surf = font.render(toggle.label, True, COLOR_TEXT)
-            screen.blit(label_surf, (60, y + 4))
-            button = toggle_buttons[toggle.label]
-            color = COLOR_TOGGLE_ON if toggle.value else COLOR_TOGGLE_OFF
-            pygame.draw.rect(screen, color, button.rect, border_radius=6)
-            state_surf = font.render(
-                "ON" if toggle.value else "OFF", True, COLOR_TEXT)
-            screen.blit(
-                state_surf, state_surf.get_rect(center=button.rect.center))
-            y += row_height
-
-        model_info_surf = font.render(
-            f"Modele : {selected_load_path}", True, COLOR_MUTED)
-        screen.blit(model_info_surf, (60, model_info_y))
-
-        save_label_surf = font.render(
-            "Sauvegarder sous :", True, COLOR_MUTED)
-        screen.blit(save_label_surf, (60, save_field_rect.y - 24))
-        field_color = COLOR_ACCENT if editing_save_path else COLOR_PANEL
-        pygame.draw.rect(
-            screen, field_color, save_field_rect, border_radius=4)
-        save_text_surf = font.render(save_path, True, COLOR_TEXT)
-        screen.blit(
-            save_text_surf, (save_field_rect.x + 8, save_field_rect.y + 6))
-
-        play_button.draw(screen, font, mouse_pos)
+        if active_screen == "home":
+            _draw_home_screen(
+                screen, font, title_font, mouse_pos, home_steppers,
+                home_minus, home_plus, home_value_rects, row_height,
+                model_info_y, selected_load_path, play_button,
+                params_open_button)
+        else:
+            _draw_params_screen(
+                screen, font, title_font, mouse_pos, sessions_stepper,
+                sessions_minus, sessions_plus, sessions_value_rect,
+                params_toggles, params_toggle_buttons, save_field_rect,
+                save_path, editing_save_path, back_button)
 
         pygame.display.flip()
         clock.tick(30)
 
     return Settings(
-        sessions=steppers[0].value,
-        board_size=steppers[1].value,
-        speed=float(steppers[2].value),
+        sessions=sessions_stepper.value,
+        board_size=board_size_stepper.value,
+        speed=float(speed_stepper.value),
         dontlearn=dontlearn_toggle.value,
         step_by_step=step_toggle.value,
         load=selected_load_path,
         save=(save_path if save_enabled_toggle.value else None),
     )
+
+
+def _draw_home_screen(
+        screen, font, title_font, mouse_pos, steppers, minus_buttons,
+        plus_buttons, value_rects, row_height, model_info_y,
+        selected_load_path, play_button, params_open_button):
+    title_surf = title_font.render("Learn2Slither", True, COLOR_ACCENT)
+    screen.blit(title_surf, (60, 30))
+
+    y = 120
+    for stepper in steppers:
+        label_surf = font.render(stepper.label, True, COLOR_TEXT)
+        screen.blit(label_surf, (60, y + 4))
+        minus_buttons[stepper.label].draw(screen, font, mouse_pos)
+        value_surf = font.render(str(stepper.value), True, COLOR_TEXT)
+        screen.blit(value_surf, value_surf.get_rect(
+            center=value_rects[stepper.label].center))
+        plus_buttons[stepper.label].draw(screen, font, mouse_pos)
+        y += row_height
+
+    model_info_surf = font.render(
+        f"Modele : {selected_load_path}", True, COLOR_MUTED)
+    screen.blit(model_info_surf, (60, model_info_y))
+
+    play_button.draw(screen, font, mouse_pos)
+    params_open_button.draw(screen, font, mouse_pos)
+
+
+def _draw_params_screen(
+        screen, font, title_font, mouse_pos, sessions_stepper,
+        sessions_minus, sessions_plus, sessions_value_rect, toggles,
+        toggle_buttons, save_field_rect, save_path, editing_save_path,
+        back_button):
+    title_surf = title_font.render("Parametres", True, COLOR_ACCENT)
+    screen.blit(title_surf, (60, 30))
+
+    y = 100
+    label_surf = font.render(sessions_stepper.label, True, COLOR_TEXT)
+    screen.blit(label_surf, (60, y + 4))
+    sessions_minus.draw(screen, font, mouse_pos)
+    value_surf = font.render(
+        str(sessions_stepper.value), True, COLOR_TEXT)
+    screen.blit(value_surf, value_surf.get_rect(
+        center=sessions_value_rect.center))
+    sessions_plus.draw(screen, font, mouse_pos)
+    y += 44
+
+    for toggle in toggles:
+        label_surf = font.render(toggle.label, True, COLOR_TEXT)
+        screen.blit(label_surf, (60, y + 4))
+        button = toggle_buttons[toggle.label]
+        color = COLOR_TOGGLE_ON if toggle.value else COLOR_TOGGLE_OFF
+        pygame.draw.rect(screen, color, button.rect, border_radius=6)
+        state_surf = font.render(
+            "ON" if toggle.value else "OFF", True, COLOR_TEXT)
+        screen.blit(
+            state_surf, state_surf.get_rect(center=button.rect.center))
+        y += 44
+
+    save_label_surf = font.render(
+        "Sauvegarder sous :", True, COLOR_MUTED)
+    screen.blit(save_label_surf, (60, save_field_rect.y - 24))
+    field_color = COLOR_ACCENT if editing_save_path else COLOR_PANEL
+    pygame.draw.rect(
+        screen, field_color, save_field_rect, border_radius=4)
+    save_text_surf = font.render(save_path, True, COLOR_TEXT)
+    screen.blit(
+        save_text_surf, (save_field_rect.x + 8, save_field_rect.y + 6))
+
+    back_button.draw(screen, font, mouse_pos)
 
 
 def run_results_screen(session_records, stats):

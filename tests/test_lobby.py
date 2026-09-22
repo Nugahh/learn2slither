@@ -79,7 +79,7 @@ def test_run_config_screen_returns_none_on_quit_event(monkeypatch):
 
 def test_run_config_screen_defaults_to_best_model_on_immediate_play(
         monkeypatch):
-    play_button_pos = (320, 512)
+    play_button_pos = (320, 306)
     monkeypatch.setattr(pygame.mouse, "get_pos", lambda: play_button_pos)
     click_event = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1)
     monkeypatch.setattr(pygame.event, "get", lambda: [click_event])
@@ -88,6 +88,34 @@ def test_run_config_screen_defaults_to_best_model_on_immediate_play(
 
     assert settings is not None
     assert settings.load == DEFAULT_MODEL_PATH
+
+
+def test_run_config_screen_navigates_to_params_and_back(monkeypatch):
+    # (position, pygame event type) for 4 successive frames:
+    # open Parametres -> increment sessions -> back to home -> PLAY
+    frames = [
+        ((320, 368), pygame.MOUSEBUTTONDOWN),
+        ((436, 116), pygame.MOUSEBUTTONDOWN),
+        ((320, 512), pygame.MOUSEBUTTONDOWN),
+        ((320, 306), pygame.MOUSEBUTTONDOWN),
+    ]
+    state = {"index": 0}
+
+    def fake_get_pos():
+        return frames[state["index"]][0]
+
+    def fake_event_get():
+        pos, event_type = frames[state["index"]]
+        state["index"] += 1
+        return [pygame.event.Event(event_type, button=1, pos=pos)]
+
+    monkeypatch.setattr(pygame.mouse, "get_pos", fake_get_pos)
+    monkeypatch.setattr(pygame.event, "get", fake_event_get)
+
+    settings = run_config_screen()
+
+    assert settings is not None
+    assert settings.sessions == 110
 
 
 def test_run_results_screen_quits_cleanly_on_quit_event(monkeypatch):
