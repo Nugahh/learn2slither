@@ -118,3 +118,27 @@ def test_step_after_game_over_raises_runtime_error():
         assert False, "expected RuntimeError after game over"
     except RuntimeError:
         pass
+
+
+def test_random_empty_cell_returns_none_when_board_full():
+    board = make_board(size=3)
+    board.snake = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1),
+                   (1, 2), (2, 0), (2, 1)]
+    board.green_apples = set()
+    board.red_apple = (2, 2)
+
+    assert board._random_empty_cell() is None
+
+
+def test_eating_green_apple_on_full_board_does_not_hang():
+    board = make_board(size=3)
+    board.snake = [(2, 1), (0, 0), (0, 1), (0, 2),
+                   (1, 0), (1, 1), (1, 2)]
+    board.green_apples = {(2, 2)}
+    board.red_apple = (2, 0)
+
+    event = board.step("RIGHT")
+
+    assert event is Event.GREEN_APPLE
+    assert len(board.green_apples) == 0
+    assert board.done is False

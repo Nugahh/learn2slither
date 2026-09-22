@@ -29,8 +29,11 @@ class Board:
         self.snake = self._spawn_snake()
         self.green_apples = set()
         self.red_apple = None
-        while len(self.green_apples) < 2:
-            self.green_apples.add(self._random_empty_cell())
+        for _ in range(2):
+            cell = self._random_empty_cell()
+            if cell is None:
+                break
+            self.green_apples.add(cell)
         self.red_apple = self._random_empty_cell()
 
     def _spawn_snake(self):
@@ -54,11 +57,15 @@ class Board:
         occupied = set(self.snake) | self.green_apples
         if self.red_apple is not None:
             occupied.add(self.red_apple)
-        while True:
-            cell = (self.rng.randrange(self.size),
-                    self.rng.randrange(self.size))
-            if cell not in occupied:
-                return cell
+        free_cells = [
+            (row, col)
+            for row in range(self.size)
+            for col in range(self.size)
+            if (row, col) not in occupied
+        ]
+        if not free_cells:
+            return None
+        return self.rng.choice(free_cells)
 
     def _in_bounds(self, row, col):
         return 0 <= row < self.size and 0 <= col < self.size
@@ -87,7 +94,9 @@ class Board:
 
         if grows:
             self.green_apples.discard(new_head)
-            self.green_apples.add(self._random_empty_cell())
+            new_apple = self._random_empty_cell()
+            if new_apple is not None:
+                self.green_apples.add(new_apple)
             return Event.GREEN_APPLE
 
         if shrinks:
