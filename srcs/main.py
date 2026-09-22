@@ -64,8 +64,68 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
     return max_length, steps
 
 
+def run_sessions(args, agent, board, display):
+    learning_enabled = not args.dontlearn
+    records = []
+    for _ in range(args.sessions):
+        max_length, steps = run_session(
+            board, agent, learning_enabled, display,
+            args.step_by_step, args.speed)
+        if learning_enabled:
+            agent.decay_epsilon()
+        if board.done:
+            print(f"Game over, max length = {max_length}, "
+                  f"max duration = {steps}")
+        else:
+            print(f"Session capped at {steps} steps, "
+                  f"max length = {max_length}")
+        records.append((max_length, steps, board.done))
+    return records
+
+
+def run_with_lobby():
+    from srcs import lobby
+
+    settings = lobby.run_config_screen()
+    while settings is not None:
+        agent = QLearningAgent()
+        if settings.load:
+            try:
+                agent.load(settings.load)
+            except Exception as exc:
+                print(f"Error: could not load model from "
+                      f"{settings.load}: {exc}")
+
+        board = Board(size=settings.board_size)
+        from srcs.display import Display
+        display = Display(board_size=settings.board_size)
+
+        try:
+            records = run_sessions(settings, agent, board, display)
+        finally:
+            display.close()
+
+        if settings.save:
+            agent.save(settings.save)
+            print(f"Save learning state in {settings.save}")
+
+        choice = lobby.run_results_screen(
+            records, lobby.compute_stats(records))
+        if choice == "quit":
+            return 0
+        if choice == "menu":
+            settings = lobby.run_config_screen()
+
+    return 0
+
+
 def main(argv=None):
-    args = parse_args(sys.argv[1:] if argv is None else argv)
+    raw_argv = sys.argv[1:] if argv is None else argv
+
+    if not raw_argv or "-lobby" in raw_argv:
+        return run_with_lobby()
+
+    args = parse_args(raw_argv)
 
     if args.board_size < config.INITIAL_SNAKE_LENGTH:
         print(f"Error: -board-size must be at least "
@@ -95,21 +155,8 @@ def main(argv=None):
         from srcs.display import Display
         display = Display(board_size=args.board_size)
 
-    learning_enabled = not args.dontlearn
-
     try:
-        for _ in range(args.sessions):
-            max_length, steps = run_session(
-                board, agent, learning_enabled, display,
-                args.step_by_step, args.speed)
-            if learning_enabled:
-                agent.decay_epsilon()
-            if board.done:
-                print(f"Game over, max length = {max_length}, "
-                      f"max duration = {steps}")
-            else:
-                print(f"Session capped at {steps} steps, "
-                      f"max length = {max_length}")
+        run_sessions(args, agent, board, display)
     finally:
         if display is not None:
             display.close()

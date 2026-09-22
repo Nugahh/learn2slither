@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from srcs import config
+from srcs import main as main_module
 from srcs.environment import Board
 from srcs.main import run_session
 
@@ -157,6 +158,56 @@ def test_load_of_json_array_fails_cleanly(tmp_path):
     assert result.returncode == 1
     assert "Traceback" not in result.stderr
     assert "could not load model" in result.stdout
+
+
+def test_main_routes_to_lobby_when_no_args(monkeypatch):
+    called = []
+    monkeypatch.setattr(
+        main_module, "run_with_lobby", lambda: called.append(True) or 0)
+
+    exit_code = main_module.main([])
+
+    assert called == [True]
+    assert exit_code == 0
+
+
+def test_main_routes_to_lobby_with_lobby_flag(monkeypatch):
+    called = []
+    monkeypatch.setattr(
+        main_module, "run_with_lobby", lambda: called.append(True) or 0)
+
+    exit_code = main_module.main(["-lobby"])
+
+    assert called == [True]
+    assert exit_code == 0
+
+
+def test_main_does_not_route_to_lobby_with_normal_flags(
+        monkeypatch, tmp_path):
+    def fail_if_called():
+        raise AssertionError("run_with_lobby should not be called")
+
+    monkeypatch.setattr(main_module, "run_with_lobby", fail_if_called)
+    model_path = tmp_path / "model.json"
+
+    exit_code = main_module.main(
+        ["-sessions", "1", "-visual", "off", "-save", str(model_path)])
+
+    assert exit_code == 0
+    assert model_path.exists()
+
+
+def test_model_trained_on_default_board_plays_on_different_size(tmp_path):
+    model_path = tmp_path / "tiny_model.json"
+    run_snake(["-sessions", "5", "-save", str(model_path)])
+
+    result = run_snake([
+        "-load", str(model_path), "-board-size", "20",
+        "-sessions", "3", "-dontlearn",
+    ])
+
+    assert result.returncode == 0, result.stderr
+    assert "Traceback" not in result.stderr
 
 
 def test_load_of_wrong_field_type_fails_cleanly(tmp_path):
