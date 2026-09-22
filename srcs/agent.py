@@ -28,12 +28,17 @@ class QLearningAgent:
         return self.q_table.get(
             state, {action: 0.0 for action in self.actions})
 
-    def choose_action(self, state, greedy=False):
+    def choose_action(self, state, greedy=False, valid_actions=None):
+        actions = valid_actions if valid_actions else self.actions
+
         if not greedy and self.rng.random() < self.epsilon:
-            return self.rng.choice(self.actions)
+            return self.rng.choice(actions)
+
         values = self._peek_values(state)
-        best_value = max(values.values())
-        best_actions = [a for a, v in values.items() if v == best_value]
+        candidates = {a: values[a] for a in actions}
+        best_value = max(candidates.values())
+        best_actions = [a for a, v in candidates.items()
+                        if v == best_value]
         return self.rng.choice(best_actions)
 
     def learn(self, state, action, reward, next_state, done):

@@ -12,6 +12,13 @@ MOVES = {
     "RIGHT": (0, 1),
 }
 
+OPPOSITE_ACTIONS = {
+    "UP": "DOWN",
+    "DOWN": "UP",
+    "LEFT": "RIGHT",
+    "RIGHT": "LEFT",
+}
+
 SYMBOL_WALL = "W"
 SYMBOL_HEAD = "H"
 SYMBOL_BODY = "S"

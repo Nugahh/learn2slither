@@ -69,7 +69,7 @@ def test_run_session_stops_at_max_steps_to_avoid_infinite_loop():
             self._actions = ("UP", "DOWN")
             self._count = 0
 
-        def choose_action(self, state, greedy=False):
+        def choose_action(self, state, greedy=False, valid_actions=None):
             action = self._actions[self._count % 2]
             self._count += 1
             return action
@@ -94,7 +94,7 @@ def test_state_includes_last_action_to_help_break_cycles():
     captured_states = []
 
     class RecordingAgent:
-        def choose_action(self, state, greedy=False):
+        def choose_action(self, state, greedy=False, valid_actions=None):
             captured_states.append(state)
             return "RIGHT"
 
@@ -107,6 +107,47 @@ def test_state_includes_last_action_to_help_break_cycles():
     assert len(captured_states[0]) == 5
     assert captured_states[0][-1] == config.NO_PREVIOUS_ACTION
     assert captured_states[1][-1] == "RIGHT"
+
+
+def test_non_reversal_actions_excludes_opposite_of_last_action():
+    assert main_module.non_reversal_actions("UP") == ["UP", "LEFT", "RIGHT"]
+    assert main_module.non_reversal_actions("DOWN") == [
+        "DOWN", "LEFT", "RIGHT"]
+    assert main_module.non_reversal_actions("LEFT") == [
+        "UP", "DOWN", "LEFT"]
+    assert main_module.non_reversal_actions("RIGHT") == [
+        "UP", "DOWN", "RIGHT"]
+
+
+def test_non_reversal_actions_allows_everything_on_first_move():
+    result = main_module.non_reversal_actions(config.NO_PREVIOUS_ACTION)
+    assert result == list(config.ACTIONS)
+
+
+def test_run_session_passes_non_reversal_valid_actions_to_agent():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5), (5, 4), (5, 3)]
+    board.green_apples = {(0, 0), (0, 1)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    received_valid_actions = []
+
+    class RecordingAgent:
+        def choose_action(self, state, greedy=False, valid_actions=None):
+            received_valid_actions.append(valid_actions)
+            return "RIGHT"
+
+        def learn(self, *args, **kwargs):
+            pass
+
+    run_session(board, RecordingAgent(), learning_enabled=False,
+                display=None, step_by_step=False, speed=config.DEFAULT_SPEED)
+
+    assert received_valid_actions[0] == list(config.ACTIONS)
+    assert received_valid_actions[1] == (
+        main_module.non_reversal_actions("RIGHT"))
 
 
 def test_load_prints_load_message(tmp_path):

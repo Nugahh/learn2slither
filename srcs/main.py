@@ -29,6 +29,13 @@ def parse_args(argv):
     return parser.parse_args(argv)
 
 
+def non_reversal_actions(last_action):
+    if last_action == config.NO_PREVIOUS_ACTION:
+        return list(config.ACTIONS)
+    opposite = config.OPPOSITE_ACTIONS[last_action]
+    return [action for action in config.ACTIONS if action != opposite]
+
+
 def run_session(board, agent, learning_enabled, display, step_by_step,
                 speed):
     board.reset()
@@ -41,7 +48,9 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
             display.render(board)
             print(format_vision(board))
 
-        action = agent.choose_action(state, greedy=not learning_enabled)
+        action = agent.choose_action(
+            state, greedy=not learning_enabled,
+            valid_actions=non_reversal_actions(state[-1]))
         if display is not None:
             print(action)
 

@@ -27,6 +27,44 @@ def test_choose_action_explores_when_epsilon_is_one():
     assert len(seen) > 1
 
 
+def test_choose_action_greedy_restricted_to_valid_actions():
+    agent = QLearningAgent(rng=random.Random(0))
+    state = ("W", "W", "W", "W")
+    agent.q_table[state] = {
+        "UP": 1.0, "DOWN": 5.0,
+        "LEFT": -1.0, "RIGHT": 0.0}
+
+    result = agent.choose_action(
+        state, greedy=True, valid_actions=["UP", "LEFT", "RIGHT"])
+
+    assert result == "UP"
+
+
+def test_choose_action_exploration_restricted_to_valid_actions():
+    agent = QLearningAgent(epsilon=1.0, rng=random.Random(0))
+    state = ("W", "W", "W", "W")
+
+    seen = {
+        agent.choose_action(
+            state, valid_actions=["UP", "DOWN"])
+        for _ in range(50)
+    }
+
+    assert seen == {"UP", "DOWN"}
+
+
+def test_choose_action_falls_back_to_all_actions_when_none_valid():
+    agent = QLearningAgent(rng=random.Random(0))
+    state = ("W", "W", "W", "W")
+    agent.q_table[state] = {
+        "UP": 1.0, "DOWN": 5.0,
+        "LEFT": -1.0, "RIGHT": 0.0}
+
+    result = agent.choose_action(state, greedy=True, valid_actions=[])
+
+    assert result == "DOWN"
+
+
 def test_learn_updates_q_value_with_bellman_equation():
     agent = QLearningAgent(alpha=0.5, gamma=0.9, rng=random.Random(0))
     state = ("W", "W", "W", "W")
