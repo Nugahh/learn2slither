@@ -12,41 +12,11 @@
   "epsilon_min": 0.01,
   "gamma": 0.9,
   "q_table": {
-    "S1|W3|W3|W3|NONE": {
+    "S1|W1|W1|R2|NONE": {
       "DOWN": 0.0,
-      "LEFT": -0.1,
+      "LEFT": -5.0,
       "RIGHT": 0.0,
       "UP": 0.0
-    },
-    "W3|G3|S1|W3|RIGHT": {
-      "DOWN": 0.0,
-      "LEFT": 0.0,
-      "RIGHT": 0.0,
-      "UP": -0.1
-    },
-    "W3|G3|W3|S1|LEFT": {
-      "DOWN": 0.0,
-      "LEFT": -0.1,
-      "RIGHT": 0.0,
-      "UP": 0.0
-    },
-    "W3|S1|R3|W3|UP": {
-      "DOWN": 0.0,
-      "LEFT": 0.0,
-      "RIGHT": 0.0,
-      "UP": -0.1
-    },
-    "W3|S1|W3|W3|UP": {
-      "DOWN": -5.0,
-      "LEFT": 0.0,
-      "RIGHT": -0.1,
-      "UP": 0.0
-    },
-    "W3|W3|W3|S1|LEFT": {
-      "DOWN": 0.0,
-      "LEFT": 0.0,
-      "RIGHT": 0.0,
-      "UP": -0.1
     }
   }
 }
