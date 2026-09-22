@@ -70,8 +70,9 @@ et complique les tests unitaires par partie — écarté.
   `symbole + palier` (ex. `"G1"` = pomme verte adjacente, `"G3"` = pomme
   verte à 3 cases ou plus). L'état est un tuple de 4 chaînes.
   Espace d'états = (4×3)⁴ = 20736 combinaisons possibles au maximum, mais
-  seul un petit sous-ensemble est réellement visité en pratique (ex. ~125
-  états après 1000 sessions d'entraînement sur un plateau 10x10).
+  seul un petit sous-ensemble est réellement visité en pratique (ex. ~880
+  états après 1000 sessions d'entraînement, ~3432 après 5000 sessions,
+  sur un plateau 10x10).
   *Révision post-implémentation* : la première version n'encodait pas la
   distance (4⁴ = 256 états), ce qui empêchait l'agent de distinguer une
   pomme proche d'une pomme lointaine dans la même direction et entraînait
