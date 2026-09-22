@@ -1,0 +1,52 @@
+{
+  "actions": [
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT"
+  ],
+  "alpha": 0.1,
+  "episodes_trained": 1,
+  "epsilon": 0.995,
+  "epsilon_decay": 0.995,
+  "epsilon_min": 0.01,
+  "gamma": 0.9,
+  "q_table": {
+    "G3|W3|R1|S1": {
+      "DOWN": -0.1,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "S1|W3|R3|W3": {
+      "DOWN": 0.0,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "S1|W3|W3|W1": {
+      "DOWN": -0.1,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "S1|W3|W3|W3": {
+      "DOWN": 0.0,
+      "LEFT": 0.0,
+      "RIGHT": 0.0,
+      "UP": -5.0
+    },
+    "W3|W3|R2|S1": {
+      "DOWN": 0.0,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    },
+    "W3|W3|W3|S1": {
+      "DOWN": -0.1,
+      "LEFT": -0.1,
+      "RIGHT": 0.0,
+      "UP": 0.0
+    }
+  }
+}
