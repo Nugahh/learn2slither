@@ -107,7 +107,7 @@ def run_config_screen():
     steppers = [
         Stepper("Sessions", 100, 1, 100000, step=10),
         Stepper("Board size", config.BOARD_SIZE, 3, 40, step=1),
-        Stepper("Speed", int(config.DEFAULT_SPEED), 1, 60, step=1),
+        Stepper("Speed", int(config.DEFAULT_SPEED), 1, 200, step=10),
     ]
     dontlearn_toggle = Toggle("Learning disabled (-dontlearn)", False)
     step_toggle = Toggle("Step-by-step", False)
