@@ -42,12 +42,12 @@ Entraîner un modèle sur 100 sessions, sans affichage (rapide) :
 
 Regarder jouer un modèle déjà entraîné, en continu, sans apprentissage :
 ```bash
-.venv/bin/python3 ./snake -visual on -load models/20000sess.json -sessions 5 -dontlearn -speed 8
+.venv/bin/python3 ./snake -visual on -load models/40000sess.json -sessions 5 -dontlearn -speed 8
 ```
 
 Évaluer rapidement un modèle sur plusieurs sessions, sans fenêtre :
 ```bash
-.venv/bin/python3 ./snake -visual off -load models/20000sess.json -sessions 20 -dontlearn
+.venv/bin/python3 ./snake -visual off -load models/40000sess.json -sessions 20 -dontlearn
 ```
 
 Raccourcis Makefile : `make train` (entraînement d'exemple), `make play`
@@ -64,7 +64,7 @@ make play           # raccourci équivalent
 Ouvre un panneau de configuration graphique (sessions, taille du plateau,
 vitesse — chiffre entre les boutons `-`/`+` —, apprentissage on/off,
 pas-à-pas, chemin de sauvegarde). Le modèle chargé par défaut est
-`models/20000sess.json` (le plus performant) ; son chemin est affiché à
+`models/40000sess.json` (le plus performant) ; son chemin est affiché à
 l'écran. À la fin des sessions, un écran de résultats affiche longueur
 moyenne/max, durée moyenne, % de sessions plafonnées, et un graphique de
 progression, avec les boutons Rejouer / Menu / Quitter.
@@ -79,17 +79,21 @@ montrer la progression de l'apprentissage :
 
 | Fichier | Sessions | États appris |
 |---|---:|---:|
-| `1sess.json` | 1 | ~6 |
-| `10sess.json` | 10 | ~20 |
-| `100sess.json` | 100 | ~171 |
-| `1000sess.json` | 1 000 | ~1 044 |
-| `5000sess.json` | 5 000 | ~3 817 |
-| `20000sess.json` | 20 000 | ~6 000 |
+| `1sess.json` | 1 | ~5 |
+| `10sess.json` | 10 | ~15 |
+| `100sess.json` | 100 | ~150 |
+| `1000sess.json` | 1 000 | ~1 100 |
+| `5000sess.json` | 5 000 | ~3 800 |
+| `20000sess.json` | 20 000 | ~5 640 |
+| `40000sess.json` | 40 000 | ~5 940 |
 
-Le modèle à 20 000 sessions (le plus entraîné) atteint, sur 100 parties en
-mode exploitation (`-dontlearn`) : longueur ≥ 15 dans 90% des parties,
-≥ 25 dans 55%, ≥ 30 dans 38%, **≥ 35 dans 15%** (record observé : 43), et
-0% de parties bloquées par le plafond de sécurité.
+Le modèle à 40 000 sessions (le meilleur testé, retenu comme modèle par
+défaut du lobby) atteint, sur 100 parties en mode exploitation
+(`-dontlearn`) : longueur ≥ 15 dans 86% des parties, ≥ 25 dans 48%,
+≥ 30 dans 28%, **≥ 35 dans 9%** (record observé : 41), et 1% de parties
+bloquées par le plafond de sécurité. Au-delà de 40 000 sessions (testé
+jusqu'à 100 000), la couverture d'états progresse très peu (rendement
+décroissant) et les performances stagnent sans amélioration claire.
 
 ## Tests
 
@@ -98,13 +102,13 @@ make test    # suite de tests (pytest)
 make norm    # vérification de la norme (flake8)
 ```
 
-48 tests couvrant chaque module indépendamment (règles du plateau, vision,
+58 tests couvrant chaque module indépendamment (règles du plateau, vision,
 apprentissage, affichage, CLI, lobby).
 
 ## Bonus implémentés
 
 - **Longueur élevée en fin de session** : voir le tableau ci-dessus
-  (`models/20000sess.json`, jusqu'à 35+ de façon reproductible).
+  (`models/40000sess.json`, jusqu'à 35+ de façon reproductible).
 - **Affichage soigné** : lobby graphique avec panneau de configuration et
   écran de résultats/statistiques (voir ci-dessus).
 - **Taille de plateau variable** : `-board-size N` (min. 3), un modèle

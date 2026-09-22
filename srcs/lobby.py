@@ -8,7 +8,7 @@ from srcs import config
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 560
 
-DEFAULT_MODEL_PATH = "models/20000sess.json"
+DEFAULT_MODEL_PATH = "models/40000sess.json"
 
 COLOR_BACKGROUND = (24, 24, 28)
 COLOR_PANEL = (36, 36, 42)
