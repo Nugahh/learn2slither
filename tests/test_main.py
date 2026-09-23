@@ -109,6 +109,83 @@ def test_state_includes_last_action_to_help_break_cycles():
     assert captured_states[1][-1] == "RIGHT"
 
 
+def test_nearest_green_distance_returns_manhattan_distance_to_closest():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.green_apples = {(5, 7), (0, 0)}
+
+    distance = main_module.nearest_green_distance(board, (5, 5))
+
+    assert distance == 2
+
+
+def test_nearest_green_distance_returns_none_when_no_green_apples():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.green_apples = set()
+
+    assert main_module.nearest_green_distance(board, (5, 5)) is None
+
+
+def test_run_session_applies_reward_shaping_when_enabled():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5), (5, 4), (5, 3)]
+    board.green_apples = {(5, 7), (0, 0)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    recorded_rewards = []
+
+    class RecordingAgent:
+        def choose_action(self, state, greedy=False, valid_actions=None):
+            return "RIGHT"
+
+        def learn(self, state, action, reward, next_state, done):
+            recorded_rewards.append(reward)
+
+    run_session(board, RecordingAgent(), learning_enabled=True,
+                display=None, step_by_step=False,
+                speed=config.DEFAULT_SPEED, reward_shaping=True)
+
+    # head (5,5) -> (5,6): distance to (5,7) goes 2 -> 1, bonus = +0.5
+    assert recorded_rewards[0] == config.REWARD_MOVE + 0.5
+
+
+def test_run_session_reward_shaping_disabled_by_default():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5), (5, 4), (5, 3)]
+    board.green_apples = {(5, 7), (0, 0)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    recorded_rewards = []
+
+    class RecordingAgent:
+        def choose_action(self, state, greedy=False, valid_actions=None):
+            return "RIGHT"
+
+        def learn(self, state, action, reward, next_state, done):
+            recorded_rewards.append(reward)
+
+    run_session(board, RecordingAgent(), learning_enabled=True,
+                display=None, step_by_step=False, speed=config.DEFAULT_SPEED)
+
+    assert recorded_rewards[0] == config.REWARD_MOVE
+
+
+def test_reward_shaping_flag_trains_without_crashing(tmp_path):
+    model_path = tmp_path / "model.json"
+
+    result = run_snake([
+        "-sessions", "3", "-reward-shaping", "-save", str(model_path),
+    ])
+
+    assert result.returncode == 0, result.stderr
+    assert model_path.exists()
+
+
 def test_non_reversal_actions_excludes_opposite_of_last_action():
     assert main_module.non_reversal_actions("UP") == ["UP", "LEFT", "RIGHT"]
     assert main_module.non_reversal_actions("DOWN") == [

@@ -26,6 +26,7 @@ def parse_args(argv):
     parser.add_argument("-step-by-step", action="store_true")
     parser.add_argument("-speed", type=float, default=config.DEFAULT_SPEED)
     parser.add_argument("-board-size", type=int, default=config.BOARD_SIZE)
+    parser.add_argument("-reward-shaping", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -36,8 +37,16 @@ def non_reversal_actions(last_action):
     return [action for action in config.ACTIONS if action != opposite]
 
 
+def nearest_green_distance(board, position):
+    if not board.green_apples:
+        return None
+    row, col = position
+    return min(abs(row - r) + abs(col - c)
+               for r, c in board.green_apples)
+
+
 def run_session(board, agent, learning_enabled, display, step_by_step,
-                speed):
+                speed, reward_shaping=False):
     board.reset()
     state = get_compact_state(board) + (config.NO_PREVIOUS_ACTION,)
     max_length = len(board.snake)
@@ -48,6 +57,10 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
             display.render(board)
             print(format_vision(board))
 
+        old_head = board.snake[0]
+        old_distance = (nearest_green_distance(board, old_head)
+                        if reward_shaping else None)
+
         action = agent.choose_action(
             state, greedy=not learning_enabled,
             valid_actions=non_reversal_actions(state[-1]))
@@ -56,6 +69,13 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
 
         event = board.step(action)
         reward = REWARDS[event]
+
+        if reward_shaping and event == Event.MOVE and not board.done:
+            new_distance = nearest_green_distance(board, board.snake[0])
+            if old_distance is not None and new_distance is not None:
+                reward += (old_distance - new_distance) * (
+                    config.SHAPING_WEIGHT)
+
         next_state = (None if board.done
                       else get_compact_state(board) + (action,))
         if learning_enabled:
@@ -78,11 +98,12 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
 
 def run_sessions(args, agent, board, display):
     learning_enabled = not args.dontlearn
+    reward_shaping = getattr(args, "reward_shaping", False)
     records = []
     for _ in range(args.sessions):
         max_length, steps = run_session(
             board, agent, learning_enabled, display,
-            args.step_by_step, args.speed)
+            args.step_by_step, args.speed, reward_shaping)
         if learning_enabled:
             agent.decay_epsilon()
         if board.done:
