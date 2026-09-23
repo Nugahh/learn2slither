@@ -85,15 +85,34 @@ montrer la progression de l'apprentissage :
 | `1000sess.json` | 1 000 | ~1 100 |
 | `5000sess.json` | 5 000 | ~3 800 |
 | `20000sess.json` | 20 000 | ~5 640 |
-| `40000sess.json` | 40 000 | ~5 940 |
+| `40000sess.json` | 40 000 | ~6 045 |
 
-Le modèle à 40 000 sessions (le meilleur testé, retenu comme modèle par
-défaut du lobby) atteint, sur 100 parties en mode exploitation
-(`-dontlearn`) : longueur ≥ 15 dans 86% des parties, ≥ 25 dans 48%,
-≥ 30 dans 28%, **≥ 35 dans 9%** (record observé : 41), et 1% de parties
-bloquées par le plafond de sécurité. Au-delà de 40 000 sessions (testé
-jusqu'à 100 000), la couverture d'états progresse très peu (rendement
-décroissant) et les performances stagnent sans amélioration claire.
+Le modèle à 40 000 sessions (retenu comme modèle par défaut du lobby)
+atteint, sur 100 parties en mode exploitation (`-dontlearn`) : longueur
+≥ 15 dans 96% des parties, ≥ 20 dans 86%, ≥ 25 dans 68%, ≥ 30 dans 46%,
+**≥ 35 dans 24%** (record observé : 54), et 2% de parties bloquées par le
+plafond de sécurité.
+
+Il a été obtenu en comparant 3 approches en parallèle (30 graines
+aléatoires sur l'algorithme standard, un taux d'apprentissage décroissant,
+et un *reward shaping* basé sur la distance à la pomme verte la plus
+proche) — le reward shaping a donné le meilleur gain, net et cohérent sur
+la quasi-totalité des graines testées, pas juste un coup de chance isolé.
+
+⚠️ **Nuance de conformité** : le reward shaping calcule un bonus/malus à
+partir de la position réelle de la pomme sur le plateau, même quand elle
+n'est pas dans le champ de vision à 4 directions du serpent. L'**état**
+donné à l'agent pour décider reste strictement limité à sa vision (aucun
+changement là-dessus) — seule la **récompense** d'entraînement utilise
+cette info supplémentaire, ce qui est une technique standard (*reward
+shaping*) distincte de l'observation de l'agent. Mais c'est une
+interprétation du texte du sujet, pas une certitude absolue.
+
+Au-delà de 40 000 sessions (testé jusqu'à 100 000, algorithme standard),
+la couverture d'états progresse très peu (rendement décroissant) et les
+performances stagnent sans amélioration claire — c'est ce qui a motivé la
+recherche multi-graines et le reward shaping plutôt que "juste entraîner
+plus longtemps".
 
 ## Tests
 
@@ -102,7 +121,7 @@ make test    # suite de tests (pytest)
 make norm    # vérification de la norme (flake8)
 ```
 
-58 tests couvrant chaque module indépendamment (règles du plateau, vision,
+59 tests couvrant chaque module indépendamment (règles du plateau, vision,
 apprentissage, affichage, CLI, lobby).
 
 ## Bonus implémentés
