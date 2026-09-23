@@ -88,9 +88,11 @@ montrer la progression de l'apprentissage :
 | `40000sess.json` | 40 000 | ~6 045 |
 
 Le modèle à 40 000 sessions (retenu comme modèle par défaut du lobby)
-atteint, sur 100 parties en mode exploitation (`-dontlearn`) : longueur
-≥ 15 dans 96% des parties, ≥ 20 dans 86%, ≥ 25 dans 68%, ≥ 30 dans 46%,
-**≥ 35 dans 24%** (record observé : 54), et 2% de parties bloquées par le
+atteint, sur 300 parties en mode exploitation (`-dontlearn` — échantillon
+large pour une estimation stable, les lots de 100 parties font varier
+chaque pourcentage de quelques points d'un tirage à l'autre) : longueur
+≥ 15 dans 90% des parties, ≥ 20 dans 70%, ≥ 25 dans 50%, ≥ 30 dans 30%,
+**≥ 35 dans 20%** (record observé : 53), et 2% de parties bloquées par le
 plafond de sécurité.
 
 Il a été obtenu en comparant 3 approches en parallèle (30 graines
