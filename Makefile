@@ -27,7 +27,7 @@ test:
 	$(VENV_BIN)/pytest -q
 
 norm:
-	$(VENV_BIN)/flake8 srcs tests
+	$(VENV_BIN)/flake8 srcs tests scripts conftest.py
 
 clean:
 	rm -rf $(VENV) .pytest_cache
