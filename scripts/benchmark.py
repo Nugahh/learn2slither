@@ -35,7 +35,8 @@ def main(argv=None):
         sessions=args.sessions, dontlearn=True, step_by_step=False,
         speed=config.DEFAULT_SPEED)
 
-    with contextlib.redirect_stdout(io.StringIO()):
+    with contextlib.redirect_stdout(io.StringIO()), \
+            contextlib.redirect_stderr(io.StringIO()):
         records, _ = run_sessions(run_args, agent, board, display=None)
 
     lengths = [length for length, _steps, _done in records]

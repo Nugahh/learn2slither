@@ -25,7 +25,7 @@ def test_training_session_prints_progress_bar_and_saves_model(tmp_path):
     result = run_snake(["-sessions", "2", "-save", str(model_path)])
 
     assert result.returncode == 0, result.stderr
-    assert "2/2" in result.stdout
+    assert "2/2" in result.stderr
     assert "Sessions : 2" in result.stdout
     assert f"Save learning state in {model_path}" in result.stdout
     assert model_path.exists()
@@ -360,7 +360,7 @@ def test_run_sessions_shows_progress_bar_when_no_display(
     main_module.run_sessions(Args(), FakeAgent(), board, display=None)
 
     captured = capsys.readouterr()
-    assert "2/2" in captured.out
+    assert "2/2" in captured.err
     assert "Sessions : 2" in captured.out
     assert "Game over" not in captured.out
 

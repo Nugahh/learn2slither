@@ -1,29 +1,15 @@
 """CLI entry point: parses arguments and runs training/play sessions."""
 import argparse
-import contextlib
 import os
 import sys
 
-from rich.progress import (
-    BarColumn, MofNCompleteColumn, Progress, TextColumn,
-    TimeElapsedColumn, TimeRemainingColumn,
-)
+from tqdm import tqdm
 
 from srcs import config
 from srcs.agent import QLearningAgent
 from srcs.environment import Board, Event
 from srcs.interpreter import format_vision, get_compact_state
 from srcs.stats import compute_stats
-
-PROGRESS_COLUMNS = (
-    TextColumn("[progress.description]{task.description}"),
-    BarColumn(),
-    MofNCompleteColumn(),
-    TextColumn("•"),
-    TimeElapsedColumn(),
-    TextColumn("•"),
-    TimeRemainingColumn(),
-)
 
 REWARDS = {
     Event.GREEN_APPLE: config.REWARD_GREEN_APPLE,
@@ -133,12 +119,8 @@ def run_sessions(args, agent, board, display):
     records = []
     go_home = False
 
-    progress_cm = (
-        Progress(*PROGRESS_COLUMNS) if show_progress
-        else contextlib.nullcontext())
-    with progress_cm as progress:
-        task_id = (progress.add_task("Sessions", total=args.sessions)
-                   if show_progress else None)
+    with tqdm(total=args.sessions, desc="Sessions",
+              disable=not show_progress) as progress_bar:
         for _ in range(args.sessions):
             max_length, steps, go_home = run_session(
                 board, agent, learning_enabled, display,
@@ -147,7 +129,7 @@ def run_sessions(args, agent, board, display):
                 agent.decay_epsilon()
             records.append((max_length, steps, board.done))
             if show_progress:
-                progress.update(task_id, advance=1)
+                progress_bar.update(1)
             else:
                 if board.done:
                     print(f"Game over, max length = {max_length}, "

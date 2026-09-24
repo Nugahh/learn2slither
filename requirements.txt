@@ -1,4 +1,4 @@
 pygame>=2.5,<3
-rich>=13,<14
+tqdm>=4.66,<5
 pytest>=7,<9
 flake8>=6,<8
