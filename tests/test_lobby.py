@@ -2,9 +2,10 @@
 import pygame
 
 from srcs.lobby import (
-    DEFAULT_MODEL_PATH, Settings, Stepper, Toggle, compute_stats,
+    DEFAULT_MODEL_PATH, Settings, Stepper, Toggle,
     run_config_screen, run_results_screen,
 )
+from srcs.stats import compute_stats
 
 
 def test_settings_defaults_match_argparse_namespace_shape():

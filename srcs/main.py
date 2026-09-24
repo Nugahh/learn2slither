@@ -7,6 +7,7 @@ from srcs import config
 from srcs.agent import QLearningAgent
 from srcs.environment import Board, Event
 from srcs.interpreter import format_vision, get_compact_state
+from srcs.stats import compute_stats
 
 REWARDS = {
     Event.GREEN_APPLE: config.REWARD_GREEN_APPLE,
@@ -43,6 +44,24 @@ def nearest_green_distance(board, position):
     row, col = position
     return min(abs(row - r) + abs(col - c)
                for r, c in board.green_apples)
+
+
+def format_progress_bar(current, total, width=30):
+    fraction = current / total
+    filled = int(width * fraction)
+    bar = "#" * filled + "-" * (width - filled)
+    return f"\r[{bar}] {current}/{total} ({fraction * 100:.0f}%)"
+
+
+def format_summary(records):
+    stats = compute_stats(records)
+    return (
+        f"Sessions : {stats['count']} | "
+        f"Longueur moyenne : {stats['avg_length']:.1f} | "
+        f"Longueur max : {stats['max_length']} | "
+        f"Duree moyenne : {stats['avg_duration']:.1f} | "
+        f"Sessions plafonnees : {stats['capped_percent']:.0f}%"
+    )
 
 
 def run_session(board, agent, learning_enabled, display, step_by_step,
@@ -101,23 +120,31 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
 def run_sessions(args, agent, board, display):
     learning_enabled = not args.dontlearn
     reward_shaping = getattr(args, "reward_shaping", False)
+    show_progress = display is None
     records = []
     go_home = False
-    for _ in range(args.sessions):
+    for index in range(args.sessions):
         max_length, steps, go_home = run_session(
             board, agent, learning_enabled, display,
             args.step_by_step, args.speed, reward_shaping)
         if learning_enabled:
             agent.decay_epsilon()
-        if board.done:
-            print(f"Game over, max length = {max_length}, "
-                  f"max duration = {steps}")
-        else:
-            print(f"Session capped at {steps} steps, "
-                  f"max length = {max_length}")
         records.append((max_length, steps, board.done))
+        if show_progress:
+            print(format_progress_bar(index + 1, args.sessions),
+                  end="", flush=True)
+        else:
+            if board.done:
+                print(f"Game over, max length = {max_length}, "
+                      f"max duration = {steps}")
+            else:
+                print(f"Session capped at {steps} steps, "
+                      f"max length = {max_length}")
         if go_home:
             break
+    if show_progress:
+        print()
+        print(format_summary(records))
     return records, go_home
 
 
@@ -148,7 +175,7 @@ def run_with_lobby():
             continue
 
         choice = lobby.run_results_screen(
-            records, lobby.compute_stats(records))
+            records, compute_stats(records))
         if choice == "quit":
             return 0
         if choice == "menu":

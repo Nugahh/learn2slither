@@ -19,13 +19,14 @@ def run_snake(args):
                           capture_output=True, text=True, timeout=60)
 
 
-def test_training_session_prints_game_over_and_saves_model(tmp_path):
+def test_training_session_prints_progress_bar_and_saves_model(tmp_path):
     model_path = tmp_path / "model.json"
 
     result = run_snake(["-sessions", "2", "-save", str(model_path)])
 
     assert result.returncode == 0, result.stderr
-    assert "Game over" in result.stdout
+    assert "[" in result.stdout and "2/2" in result.stdout
+    assert "Sessions : 2" in result.stdout
     assert f"Save learning state in {model_path}" in result.stdout
     assert model_path.exists()
 
@@ -323,6 +324,84 @@ def test_run_sessions_stops_early_and_returns_go_home(monkeypatch):
     assert len(calls) == 1
     assert go_home is True
     assert len(records) == 1
+
+
+def test_format_progress_bar_renders_filled_and_empty_segments():
+    bar = main_module.format_progress_bar(5, 10, width=10)
+    assert bar == "\r[#####-----] 5/10 (50%)"
+
+
+def test_format_progress_bar_full_at_completion():
+    bar = main_module.format_progress_bar(10, 10, width=10)
+    assert bar == "\r[##########] 10/10 (100%)"
+
+
+def test_format_summary_reports_aggregate_stats():
+    records = [(10, 50, True), (20, 100, True), (5, 2000, False)]
+
+    summary = main_module.format_summary(records)
+
+    assert "Sessions : 3" in summary
+    assert "Longueur max : 20" in summary
+    assert "Sessions plafonnees : 33%" in summary
+
+
+def test_run_sessions_shows_progress_bar_when_no_display(
+        monkeypatch, capsys):
+    def fake_run_session(
+            board, agent, learning_enabled, display,
+            step_by_step, speed, reward_shaping=False):
+        board.done = True
+        return 5, 10, False
+
+    monkeypatch.setattr(main_module, "run_session", fake_run_session)
+
+    class Args:
+        sessions = 2
+        dontlearn = False
+        step_by_step = False
+        speed = config.DEFAULT_SPEED
+
+    class FakeAgent:
+        def decay_epsilon(self):
+            pass
+
+    board = Board(size=10)
+    main_module.run_sessions(Args(), FakeAgent(), board, display=None)
+
+    captured = capsys.readouterr()
+    assert "2/2" in captured.out
+    assert "Sessions : 2" in captured.out
+    assert "Game over" not in captured.out
+
+
+def test_run_sessions_keeps_per_session_text_when_display_present(
+        monkeypatch, capsys):
+    def fake_run_session(
+            board, agent, learning_enabled, display,
+            step_by_step, speed, reward_shaping=False):
+        board.done = True
+        return 5, 10, False
+
+    monkeypatch.setattr(main_module, "run_session", fake_run_session)
+
+    class Args:
+        sessions = 2
+        dontlearn = False
+        step_by_step = False
+        speed = config.DEFAULT_SPEED
+
+    class FakeAgent:
+        def decay_epsilon(self):
+            pass
+
+    board = Board(size=10)
+    main_module.run_sessions(
+        Args(), FakeAgent(), board, display=object())
+
+    captured = capsys.readouterr()
+    assert "Game over, max length = 5, max duration = 10" in captured.out
+    assert "Sessions :" not in captured.out
 
 
 def test_load_prints_load_message(tmp_path):
