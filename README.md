@@ -1,9 +1,9 @@
 # Learn2Slither
 
-Un serpent qui apprend à jouer par renforcement (Q-learning), pour le sujet
-42 *Learn2Slither*. L'agent ne voit que 4 lignes de vision depuis sa tête
-(haut/bas/gauche/droite) et doit apprendre, par essai-erreur, à manger des
-pommes vertes, éviter les pommes rouges et ne pas mourir.
+A snake that learns to play through reinforcement learning (Q-learning),
+for the 42 school subject *Learn2Slither*. The agent only sees 4 lines of
+vision from its head (up/down/left/right) and must learn, through trial
+and error, to eat green apples, avoid red apples, and not die.
 
 ## Installation
 
@@ -11,174 +11,171 @@ pommes vertes, éviter les pommes rouges et ne pas mourir.
 make install
 ```
 
-Crée un environnement virtuel Python (`.venv/`) et installe les dépendances
-(`pygame`, `tqdm`, `pytest`, `flake8`).
+Creates a Python virtual environment (`.venv/`) and installs the
+dependencies (`pygame`, `tqdm`, `pytest`, `flake8`).
 
-## Utilisation
+## Usage
 
 ```bash
 ./snake [options]
 ```
 
-(ou `.venv/bin/python3 ./snake [options]` si le venv n'est pas activé)
+(or `.venv/bin/python3 ./snake [options]` if the venv isn't activated)
 
-| Option | Description | Défaut |
+| Option | Description | Default |
 |---|---|---|
-| `-sessions N` | Nombre de sessions à jouer/entraîner | `1` |
-| `-save PATH` | Sauvegarde le modèle (Q-table) à la fin | — |
-| `-load PATH` | Charge un modèle existant au démarrage | — |
-| `-visual {on,off}` | Affichage graphique Pygame + vision/action en terminal | `on` |
-| `-dontlearn` | Mode exploitation : pas d'apprentissage, le modèle chargé n'est pas modifié | désactivé |
-| `-step-by-step` | Avance case par case (ESPACE / flèche droite / Entrée) | désactivé |
-| `-speed N` | Vitesse d'affichage (déplacements/seconde) hors mode pas-à-pas | `10` |
-| `-board-size N` | Taille du plateau (min. 3) — un modèle entraîné en 10x10 rejoue tel quel sur une autre taille | `10` |
-| `-reward-shaping` | Entraînement : bonus/malus basé sur la distance à la pomme verte la plus proche (voir *Modèles fournis*) | désactivé |
+| `-sessions N` | Number of sessions to play/train | `1` |
+| `-save PATH` | Save the model (Q-table) at the end | — |
+| `-load PATH` | Load an existing model at startup | — |
+| `-visual {on,off}` | Pygame graphical display + vision/action in the terminal | `on` |
+| `-dontlearn` | Exploitation mode: no learning, the loaded model is left unchanged | disabled |
+| `-step-by-step` | Advance one cell at a time (SPACE / right arrow / Enter) | disabled |
+| `-speed N` | Display speed (moves/second) outside step-by-step mode | `10` |
+| `-board-size N` | Board size (min. 3) — a model trained on a 10x10 board replays as-is on another size | `10` |
+| `-reward-shaping` | Training: bonus/penalty based on distance to the nearest green apple (see *Provided models*) | disabled |
 
-### Exemples
+### Examples
 
-Entraîner un modèle sur 100 sessions, sans affichage (rapide) :
+Train a model over 100 sessions, no display (fast):
 ```bash
-.venv/bin/python3 ./snake -sessions 100 -visual off -save models/mon_modele.json
+.venv/bin/python3 ./snake -sessions 100 -visual off -save models/my_model.json
 ```
-En mode `-visual off`, une barre de progression (`tqdm`) s'affiche pendant
-l'entraînement, suivie d'un résumé (longueur moyenne/max, durée moyenne,
-% de sessions plafonnées) une fois terminé.
+In `-visual off` mode, a progress bar (`tqdm`) is shown during training,
+followed by a summary (avg/max length, avg duration, % of capped
+sessions) once it's done.
 
-Entraîner le modèle flagship (40 000 sessions, avec reward shaping) :
+Train the flagship model (40,000 sessions, with reward shaping):
 ```bash
 .venv/bin/python3 ./snake -sessions 40000 -visual off -reward-shaping -save models/40000sess.json
 ```
 
-Regarder jouer un modèle déjà entraîné, en continu, sans apprentissage :
+Watch a trained model play, continuously, without learning:
 ```bash
 .venv/bin/python3 ./snake -visual on -load models/40000sess.json -sessions 5 -dontlearn -speed 8
 ```
 
-Évaluer un modèle sur de nombreuses sessions et voir les paliers de
-longueur atteints :
+Evaluate a model over many sessions and see the length tiers reached:
 ```bash
-make benchmark                                    # 1000 sessions, modèle flagship
-make benchmark MODEL=models/x.json SESSIONS=300    # autre modèle / échantillon
+make benchmark                                    # 1000 sessions, flagship model
+make benchmark MODEL=models/x.json SESSIONS=300    # other model / sample size
 ```
 
-Raccourcis Makefile : `make train` (entraîne le modèle flagship), `make
-play` (ouvre le lobby graphique), `make benchmark` (statistiques sur N
-sessions).
+Makefile shortcuts: `make train` (trains the flagship model), `make play`
+(opens the graphical lobby), `make benchmark` (stats over N sessions).
 
-### Lobby graphique (bonus)
+### Graphical lobby (bonus)
 
 ```bash
-./snake            # sans aucun argument
-./snake -lobby      # ou explicitement, même combiné à d'autres usages
-make play           # raccourci équivalent
+./snake            # with no arguments at all
+./snake -lobby      # or explicitly, even combined with other flags
+make play           # equivalent shortcut
 ```
 
-Panneau de configuration graphique en deux écrans : Accueil (vitesse,
-taille du plateau, bouton PLAY) et Paramètres (nombre de sessions,
-pas-à-pas). Le lobby ne fait que **jouer** un modèle déjà entraîné —
-aucun apprentissage, aucune sauvegarde depuis cet écran ; l'entraînement
-se fait via la ligne de commande (`make train` ou `./snake -sessions
-...`). Le modèle chargé par défaut est `models/40000sess.json` (le plus
-performant) ; son chemin est affiché à l'écran.
+A graphical configuration panel with two screens: Home (speed, board
+size, PLAY button) and Settings (number of sessions, step-by-step). The
+lobby only **plays** an already-trained model — no learning, no saving
+from this screen; training happens through the command line (`make
+train` or `./snake -sessions ...`). The default loaded model is
+`models/40000sess.json` (the best-performing one); its path is shown on
+screen.
 
-À la fin de chaque partie, un écran affiche la longueur atteinte et la
-durée : Espace/Entrée pour rejouer, Échap pour revenir à l'accueil. Une
-fois toutes les sessions jouées, un écran de résultats affiche longueur
-moyenne/max, durée moyenne, % de sessions plafonnées et un graphique de
-progression, avec les boutons Rejouer / Menu / Quitter.
+At the end of each game, a screen shows the length reached and the
+duration: Space/Enter to replay, Escape to return to the home screen.
+Once all sessions have been played, a results screen shows avg/max
+length, avg duration, % of capped sessions, and a progress chart, with
+Replay / Menu / Quit buttons.
 
-N'importe quel autre appel (avec au moins un flag existant) utilise le
-flux CLI classique ci-dessus, inchangé.
+Any other invocation (with at least one existing flag) uses the classic
+CLI flow above, unchanged.
 
-## Modèles fournis
+## Provided models
 
-Le dossier `models/` contient le modèle flagship, `40000sess.json` (40 000
-sessions, ~6 100 états appris), utilisé par défaut par le lobby et par
-`make benchmark`. Il se reproduit avec `make train` (voir *Exemples*).
+The `models/` folder contains the flagship model, `40000sess.json`
+(40,000 sessions, ~6,100 learned states), used by default by the lobby
+and by `make benchmark`. It can be reproduced with `make train` (see
+*Examples*).
 
-Sur 1000 parties en mode exploitation (`-dontlearn`, via `make
-benchmark` — échantillon large pour une estimation stable, un lot de 100
-parties fait varier chaque pourcentage de quelques points d'un tirage à
-l'autre) : longueur moyenne 28.4, ≥ 15 dans 93% des parties, ≥ 20 dans
-82%, ≥ 25 dans 65%, ≥ 30 dans 43%, **≥ 35 dans 25%** (record observé :
-64), et 0.6% de parties bloquées par le plafond de sécurité.
+Over 1000 games in exploitation mode (`-dontlearn`, via `make
+benchmark` — a large sample for a stable estimate; a batch of 100 games
+makes each percentage vary by a few points from one run to the next):
+average length 28.4, length ≥ 15 in 93% of games, ≥ 20 in 82%, ≥ 25 in
+65%, ≥ 30 in 43%, **≥ 35 in 25%** (best observed: 64), and 0.6% of games
+capped by the safety limit.
 
-Il a été obtenu en comparant 3 approches en parallèle (30 graines
-aléatoires sur l'algorithme standard, un taux d'apprentissage décroissant,
-et un *reward shaping* basé sur la distance à la pomme verte la plus
-proche) — le reward shaping a donné le meilleur gain, net et cohérent sur
-la quasi-totalité des graines testées, pas juste un coup de chance isolé.
+It was obtained by comparing 3 approaches in parallel (30 random seeds
+on the standard algorithm, a decaying learning rate, and *reward
+shaping* based on distance to the nearest green apple) — reward shaping
+gave the best gain, clear and consistent across nearly every seed
+tested, not just one lucky run.
 
-⚠️ **Nuance de conformité** : le reward shaping calcule un bonus/malus à
-partir de la position réelle de la pomme sur le plateau, même quand elle
-n'est pas dans le champ de vision à 4 directions du serpent. L'**état**
-donné à l'agent pour décider reste strictement limité à sa vision (aucun
-changement là-dessus) — seule la **récompense** d'entraînement utilise
-cette info supplémentaire, ce qui est une technique standard (*reward
-shaping*) distincte de l'observation de l'agent. Mais c'est une
-interprétation du texte du sujet, pas une certitude absolue.
+⚠️ **Compliance nuance**: reward shaping computes a bonus/penalty from
+the apple's actual position on the board, even when it isn't within the
+snake's 4-direction field of vision. The **state** given to the agent to
+decide stays strictly limited to its vision (nothing changes there) —
+only the training **reward** uses this extra information, which is a
+standard technique (*reward shaping*) distinct from the agent's
+observation. But this is an interpretation of the subject text, not an
+absolute certainty.
 
-Au-delà de 40 000 sessions (testé jusqu'à 100 000, algorithme standard),
-la couverture d'états progresse très peu (rendement décroissant) et les
-performances stagnent sans amélioration claire — c'est ce qui a motivé la
-recherche multi-graines et le reward shaping plutôt que "juste entraîner
-plus longtemps".
+Beyond 40,000 sessions (tested up to 100,000, standard algorithm), state
+coverage grows very little (diminishing returns) and performance
+plateaus without clear improvement — which is what motivated the
+multi-seed search and reward shaping rather than "just training for
+longer."
 
 ## Tests
 
 ```bash
-make test    # suite de tests (pytest)
-make norm    # vérification de la norme (flake8)
+make test    # test suite (pytest)
+make norm    # norm check (flake8)
 ```
 
-70 tests couvrant chaque module indépendamment (règles du plateau, vision,
-apprentissage, affichage, CLI, lobby, statistiques).
+70 tests covering each module independently (board rules, vision,
+learning, display, CLI, lobby, stats).
 
-## Bonus implémentés
+## Bonuses implemented
 
-- **Longueur élevée en fin de session** : voir les statistiques ci-dessus
-  (`models/40000sess.json`, jusqu'à 35+ de façon reproductible).
-- **Affichage soigné** : lobby graphique avec panneau de configuration et
-  écran de résultats/statistiques (voir ci-dessus).
-- **Taille de plateau variable** : `-board-size N` (min. 3), un modèle
-  entraîné en 10x10 rejoue sans problème sur une autre taille — validé
-  manuellement (3, 5, 10, 20 ; longueur 43 atteinte en 20x20) et par un
-  test automatisé
+- **High length at the end of a session**: see the stats above
+  (`models/40000sess.json`, reaches 35+ reproducibly).
+- **Polished display**: graphical lobby with a configuration panel and a
+  results/stats screen (see above).
+- **Variable board size**: `-board-size N` (min. 3), a model trained on
+  a 10x10 board plays fine on another size — validated manually (3, 5,
+  10, 20; length 43 reached on 20x20) and by an automated test
   (`tests/test_main.py::test_model_trained_on_default_board_plays_on_different_size`).
 
-## Structure du projet
+## Project structure
 
 ```
 srcs/
-├── config.py        # constantes : taille du plateau, récompenses, hyperparamètres
-├── environment.py    # Board : grille, serpent, pommes, règles de collision
-├── interpreter.py    # plateau → vision terminale + état compact pour la Q-table
-├── agent.py           # Q-learning : choix d'action, apprentissage, sauvegarde/chargement
-├── display.py         # affichage graphique du jeu (Pygame)
-├── stats.py            # statistiques agrégées sur un lot de sessions
-├── lobby.py            # lobby graphique : config + résultats (bonus)
-└── main.py             # ligne de commande + routage lobby + boucle de sessions
+├── config.py        # constants: board size, rewards, hyperparameters
+├── environment.py    # Board: grid, snake, apples, collision rules
+├── interpreter.py    # board -> terminal vision + compact state for the Q-table
+├── agent.py           # Q-learning: action selection, learning, save/load
+├── display.py         # graphical display of the game (Pygame)
+├── stats.py            # aggregate statistics over a batch of sessions
+├── lobby.py            # graphical lobby: config + results (bonus)
+└── main.py             # command line + lobby routing + session loop
 
-tests/        # tests unitaires et d'intégration, un fichier par module
-scripts/      # scripts autonomes (benchmark.py : évaluation par paliers)
-models/       # modèles Q-table entraînés (JSON)
-snake         # point d'entrée exécutable
+tests/        # unit and integration tests, one file per module
+scripts/      # standalone scripts (benchmark.py: tiered evaluation)
+models/       # trained Q-table models (JSON)
+snake         # executable entry point
 ```
 
-## Choix de conception
+## Design choices
 
-- **Vision** : à chaque tour, le serpent scanne les 4 directions depuis sa
-  tête jusqu'au premier objet rencontré (mur, corps, pomme verte ou rouge) ;
-  la distance est regroupée en 3 paliers (1, 2, 3+). La dernière action
-  jouée est aussi mémorisée (mémoire propre de l'agent, pas une info du
-  plateau) pour éviter les oscillations. L'agent ne reçoit jamais
-  d'information hors de son champ de vision.
-- **Modèle** : Q-table (dictionnaire état → valeurs par action), pas de
-  réseau de neurones.
-- **Récompenses** : pomme verte `+10`, pomme rouge `-10`, déplacement `-1`,
-  game over `-50`.
-- **Sécurité** : un plafond de pas par session (`MAX_STEPS_PER_SESSION`)
-  évite qu'une politique gloutonne reste bloquée indéfiniment ; les erreurs
-  d'entrée (`-load` invalide, `-board-size` trop petit, `-save` vers un
-  dossier inexistant) sont signalées proprement plutôt que de faire planter
-  le programme.
+- **Vision**: on each turn, the snake scans the 4 directions from its
+  head to the first object encountered (wall, body, green or red apple);
+  distance is bucketed into 3 tiers (1, 2, 3+). The last action taken is
+  also remembered (the agent's own memory, not board info) to avoid
+  oscillation. The agent never receives information outside its field of
+  vision.
+- **Model**: Q-table (state -> per-action values dictionary), no neural
+  network.
+- **Rewards**: green apple `+10`, red apple `-10`, move `-1`, game over
+  `-50`.
+- **Safety**: a per-session step cap (`MAX_STEPS_PER_SESSION`) prevents a
+  greedy policy from getting stuck indefinitely; input errors (invalid
+  `-load`, `-board-size` too small, `-save` to a nonexistent directory)
+  are reported cleanly instead of crashing the program.
