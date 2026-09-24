@@ -49,13 +49,29 @@ def test_display_tick_does_not_crash():
         display.close()
 
 
-def test_show_game_over_waits_for_keypress_then_returns(monkeypatch):
+def test_show_game_over_returns_restart_on_space_keypress(monkeypatch):
     import pygame
     space_event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)
     monkeypatch.setattr(pygame.event, "wait", lambda: space_event)
 
     display = Display(board_size=10, cell_px=8)
     try:
-        display.show_game_over(max_length=12, steps=99, died=True)
+        choice = display.show_game_over(max_length=12, steps=99, died=True)
     finally:
         display.close()
+
+    assert choice == "restart"
+
+
+def test_show_game_over_returns_home_on_escape_keypress(monkeypatch):
+    import pygame
+    escape_event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)
+    monkeypatch.setattr(pygame.event, "wait", lambda: escape_event)
+
+    display = Display(board_size=10, cell_px=8)
+    try:
+        choice = display.show_game_over(max_length=12, steps=99, died=True)
+    finally:
+        display.close()
+
+    assert choice == "home"

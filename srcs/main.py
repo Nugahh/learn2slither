@@ -90,18 +90,21 @@ def run_session(board, agent, learning_enabled, display, step_by_step,
             else:
                 display.tick(speed)
 
+    go_home = False
     if display is not None:
-        display.show_game_over(max_length, steps, board.done)
+        go_home = display.show_game_over(
+            max_length, steps, board.done) == "home"
 
-    return max_length, steps
+    return max_length, steps, go_home
 
 
 def run_sessions(args, agent, board, display):
     learning_enabled = not args.dontlearn
     reward_shaping = getattr(args, "reward_shaping", False)
     records = []
+    go_home = False
     for _ in range(args.sessions):
-        max_length, steps = run_session(
+        max_length, steps, go_home = run_session(
             board, agent, learning_enabled, display,
             args.step_by_step, args.speed, reward_shaping)
         if learning_enabled:
@@ -113,7 +116,9 @@ def run_sessions(args, agent, board, display):
             print(f"Session capped at {steps} steps, "
                   f"max length = {max_length}")
         records.append((max_length, steps, board.done))
-    return records
+        if go_home:
+            break
+    return records, go_home
 
 
 def run_with_lobby():
@@ -134,13 +139,17 @@ def run_with_lobby():
         display = Display(board_size=settings.board_size)
 
         try:
-            records = run_sessions(settings, agent, board, display)
+            records, go_home = run_sessions(settings, agent, board, display)
         finally:
             display.close()
 
         if settings.save:
             agent.save(settings.save)
             print(f"Save learning state in {settings.save}")
+
+        if go_home:
+            settings = lobby.run_config_screen()
+            continue
 
         choice = lobby.run_results_screen(
             records, lobby.compute_stats(records))

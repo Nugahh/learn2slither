@@ -137,7 +137,7 @@ class Display:
             f"Longueur : {max_length}    Duree : {steps}",
             True, COLOR_SCORE_TEXT)
         hint_surf = text_font.render(
-            "Espace / fleche droite / Entree pour continuer",
+            "Espace / Entree : rejouer    Echap : menu",
             True, COLOR_HINT_TEXT)
 
         center = (self.screen.get_width() // 2,
@@ -150,7 +150,20 @@ class Display:
             center=(center[0], center[1] + 45)))
 
         pygame.display.flip()
-        self.wait_for_step()
+        return self._wait_for_game_over_choice()
+
+    def _wait_for_game_over_choice(self):
+        while True:
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                raise SystemExit(0)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return "home"
+                if event.key in (
+                        pygame.K_SPACE, pygame.K_RIGHT, pygame.K_RETURN):
+                    return "restart"
 
     def wait_for_step(self):
         while True:

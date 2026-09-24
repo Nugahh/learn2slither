@@ -74,13 +74,14 @@ def test_run_session_stops_at_max_steps_to_avoid_infinite_loop():
             self._count += 1
             return action
 
-    max_length, steps = run_session(
+    max_length, steps, go_home = run_session(
         board, OscillatingAgent(), learning_enabled=False,
         display=None, step_by_step=False, speed=config.DEFAULT_SPEED)
 
     assert steps == config.MAX_STEPS_PER_SESSION
     assert board.done is False
     assert max_length == 1
+    assert go_home is False
 
 
 def test_state_includes_last_action_to_help_break_cycles():
@@ -225,6 +226,103 @@ def test_run_session_passes_non_reversal_valid_actions_to_agent():
     assert received_valid_actions[0] == list(config.ACTIONS)
     assert received_valid_actions[1] == (
         main_module.non_reversal_actions("RIGHT"))
+
+
+def test_run_session_returns_go_home_true_when_display_signals_home():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5), (5, 4), (5, 3)]
+    board.green_apples = {(0, 0), (0, 1)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    class RecordingAgent:
+        def choose_action(self, state, greedy=False, valid_actions=None):
+            return "RIGHT"
+
+        def learn(self, *args, **kwargs):
+            pass
+
+    class FakeDisplay:
+        def render(self, board):
+            pass
+
+        def tick(self, speed):
+            pass
+
+        def show_game_over(self, max_length, steps, died):
+            return "home"
+
+    _, _, go_home = run_session(
+        board, RecordingAgent(), learning_enabled=False,
+        display=FakeDisplay(), step_by_step=False,
+        speed=config.DEFAULT_SPEED)
+
+    assert go_home is True
+
+
+def test_run_session_returns_go_home_false_when_display_signals_restart():
+    board = Board(size=10)
+    board.reset = lambda: None
+    board.snake = [(5, 5), (5, 4), (5, 3)]
+    board.green_apples = {(0, 0), (0, 1)}
+    board.red_apple = (0, 2)
+    board.done = False
+
+    class RecordingAgent:
+        def choose_action(self, state, greedy=False, valid_actions=None):
+            return "RIGHT"
+
+        def learn(self, *args, **kwargs):
+            pass
+
+    class FakeDisplay:
+        def render(self, board):
+            pass
+
+        def tick(self, speed):
+            pass
+
+        def show_game_over(self, max_length, steps, died):
+            return "restart"
+
+    _, _, go_home = run_session(
+        board, RecordingAgent(), learning_enabled=False,
+        display=FakeDisplay(), step_by_step=False,
+        speed=config.DEFAULT_SPEED)
+
+    assert go_home is False
+
+
+def test_run_sessions_stops_early_and_returns_go_home(monkeypatch):
+    calls = []
+
+    def fake_run_session(
+            board, agent, learning_enabled, display,
+            step_by_step, speed, reward_shaping=False):
+        calls.append(1)
+        board.done = True
+        return 5, 10, len(calls) == 1
+
+    monkeypatch.setattr(main_module, "run_session", fake_run_session)
+
+    class Args:
+        sessions = 3
+        dontlearn = False
+        step_by_step = False
+        speed = config.DEFAULT_SPEED
+
+    class FakeAgent:
+        def decay_epsilon(self):
+            pass
+
+    board = Board(size=10)
+    records, go_home = main_module.run_sessions(
+        Args(), FakeAgent(), board, display=object())
+
+    assert len(calls) == 1
+    assert go_home is True
+    assert len(records) == 1
 
 
 def test_load_prints_load_message(tmp_path):
