@@ -131,9 +131,14 @@ def run_config_screen():
     sessions_plus = Button((420, y, 32, 32), "+")
     y += row_height
 
+    toggle_width = 90
+    sessions_row_center_x = (
+        sessions_minus.rect.left + sessions_plus.rect.right) // 2
+    toggle_x = sessions_row_center_x - toggle_width // 2
     params_toggle_buttons = {}
     for toggle in params_toggles:
-        params_toggle_buttons[toggle.label] = Button((420, y, 90, 32), "")
+        params_toggle_buttons[toggle.label] = Button(
+            (toggle_x, y, toggle_width, 32), "")
         y += row_height
 
     back_button = Button(
