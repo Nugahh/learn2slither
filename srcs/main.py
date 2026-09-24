@@ -143,10 +143,6 @@ def run_with_lobby():
         finally:
             display.close()
 
-        if settings.save:
-            agent.save(settings.save)
-            print(f"Save learning state in {settings.save}")
-
         if go_home:
             settings = lobby.run_config_screen()
             continue

@@ -3,7 +3,7 @@ import pygame
 
 from srcs.lobby import (
     DEFAULT_MODEL_PATH, Settings, Stepper, Toggle, compute_stats,
-    default_save_path, run_config_screen, run_results_screen,
+    run_config_screen, run_results_screen,
 )
 
 
@@ -12,10 +12,9 @@ def test_settings_defaults_match_argparse_namespace_shape():
 
     assert settings.sessions == 1
     assert settings.board_size == 10
-    assert settings.dontlearn is False
+    assert settings.dontlearn is True
     assert settings.step_by_step is False
     assert settings.load is None
-    assert settings.save is None
     assert settings.visual == "on"
 
 
@@ -50,12 +49,6 @@ def test_toggle_flip():
     assert toggle.value is True
     toggle.flip()
     assert toggle.value is False
-
-
-def test_default_save_path_format():
-    path = default_save_path()
-    assert path.startswith("models/lobby_")
-    assert path.endswith(".json")
 
 
 def test_compute_stats_basic():

@@ -1,6 +1,4 @@
 """Graphical lobby: configuration panel and end-of-session results."""
-import time
-
 import pygame
 
 from srcs import config
@@ -26,15 +24,13 @@ TITLE_SIZE = 32
 
 class Settings:
     def __init__(self, sessions=1, board_size=config.BOARD_SIZE,
-                 speed=config.DEFAULT_SPEED, dontlearn=False,
-                 step_by_step=False, load=None, save=None):
+                 speed=config.DEFAULT_SPEED, step_by_step=False, load=None):
         self.sessions = sessions
         self.board_size = board_size
         self.speed = speed
-        self.dontlearn = dontlearn
+        self.dontlearn = True
         self.step_by_step = step_by_step
         self.load = load
-        self.save = save
         self.visual = "on"
 
 
@@ -78,10 +74,6 @@ class Button:
         screen.blit(text_surf, text_surf.get_rect(center=self.rect.center))
 
 
-def default_save_path():
-    return f"models/lobby_{int(time.time())}.json"
-
-
 def compute_stats(session_records):
     count = len(session_records)
     lengths = [record[0] for record in session_records]
@@ -108,10 +100,8 @@ def run_config_screen():
         "Speed", int(config.DEFAULT_SPEED), 1, 200, step=10)
     board_size_stepper = Stepper("Board size", config.BOARD_SIZE, 3, 40)
     sessions_stepper = Stepper("Sessions", 100, 1, 100000, step=10)
-    dontlearn_toggle = Toggle("Learning disabled (-dontlearn)", False)
     step_toggle = Toggle("Step-by-step", False)
-    save_enabled_toggle = Toggle("Save model", True)
-    params_toggles = [dontlearn_toggle, step_toggle, save_enabled_toggle]
+    params_toggles = [step_toggle]
 
     row_height = 44
 
@@ -134,7 +124,7 @@ def run_config_screen():
         (WINDOW_WIDTH // 2 - 80, model_info_y + 120, 160, 40),
         "Parametres")
 
-    # --- Parameters screen widgets: sessions, learning, save ---
+    # --- Parameters screen widgets: sessions, step-by-step ---
     y = 100
     sessions_minus = Button((300, y, 32, 32), "-")
     sessions_value_rect = pygame.Rect(332, y, 88, 32)
@@ -146,12 +136,9 @@ def run_config_screen():
         params_toggle_buttons[toggle.label] = Button((420, y, 90, 32), "")
         y += row_height
 
-    save_field_rect = pygame.Rect(60, y + 20, 480, 32)
     back_button = Button(
         (WINDOW_WIDTH // 2 - 70, WINDOW_HEIGHT - 70, 140, 44), "Retour")
 
-    save_path = default_save_path()
-    editing_save_path = False
     selected_load_path = DEFAULT_MODEL_PATH
     active_screen = "home"
     running = True
@@ -181,17 +168,8 @@ def run_config_screen():
                         button = params_toggle_buttons[toggle.label]
                         if button.is_hovered(mouse_pos):
                             toggle.flip()
-                    editing_save_path = save_field_rect.collidepoint(
-                        mouse_pos)
                     if back_button.is_hovered(mouse_pos):
                         active_screen = "home"
-            elif event.type == pygame.KEYDOWN and editing_save_path:
-                if event.key == pygame.K_BACKSPACE:
-                    save_path = save_path[:-1]
-                elif event.key == pygame.K_RETURN:
-                    editing_save_path = False
-            elif event.type == pygame.TEXTINPUT and editing_save_path:
-                save_path += event.text
 
         screen.fill(COLOR_BACKGROUND)
 
@@ -205,8 +183,7 @@ def run_config_screen():
             _draw_params_screen(
                 screen, font, title_font, mouse_pos, sessions_stepper,
                 sessions_minus, sessions_plus, sessions_value_rect,
-                params_toggles, params_toggle_buttons, save_field_rect,
-                save_path, editing_save_path, back_button)
+                params_toggles, params_toggle_buttons, back_button)
 
         pygame.display.flip()
         clock.tick(30)
@@ -215,10 +192,8 @@ def run_config_screen():
         sessions=sessions_stepper.value,
         board_size=board_size_stepper.value,
         speed=float(speed_stepper.value),
-        dontlearn=dontlearn_toggle.value,
         step_by_step=step_toggle.value,
         load=selected_load_path,
-        save=(save_path if save_enabled_toggle.value else None),
     )
 
 
@@ -251,8 +226,7 @@ def _draw_home_screen(
 def _draw_params_screen(
         screen, font, title_font, mouse_pos, sessions_stepper,
         sessions_minus, sessions_plus, sessions_value_rect, toggles,
-        toggle_buttons, save_field_rect, save_path, editing_save_path,
-        back_button):
+        toggle_buttons, back_button):
     title_surf = title_font.render("Parametres", True, COLOR_ACCENT)
     screen.blit(title_surf, (60, 30))
 
@@ -278,16 +252,6 @@ def _draw_params_screen(
         screen.blit(
             state_surf, state_surf.get_rect(center=button.rect.center))
         y += 44
-
-    save_label_surf = font.render(
-        "Sauvegarder sous :", True, COLOR_MUTED)
-    screen.blit(save_label_surf, (60, save_field_rect.y - 24))
-    field_color = COLOR_ACCENT if editing_save_path else COLOR_PANEL
-    pygame.draw.rect(
-        screen, field_color, save_field_rect, border_radius=4)
-    save_text_surf = font.render(save_path, True, COLOR_TEXT)
-    screen.blit(
-        save_text_surf, (save_field_rect.x + 8, save_field_rect.y + 6))
 
     back_button.draw(screen, font, mouse_pos)
 
