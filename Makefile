@@ -12,7 +12,7 @@ install: venv
 	$(VENV_BIN)/pip install -r requirements.txt
 
 train:
-	$(VENV_BIN)/python3 ./snake -sessions 100 -visual off -save models/100sess.json
+	$(VENV_BIN)/python3 ./snake -sessions 40000 -visual off -reward-shaping -save models/100sess.json
 
 play:
 	$(VENV_BIN)/python3 ./snake -lobby
