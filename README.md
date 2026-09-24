@@ -12,7 +12,7 @@ make install
 ```
 
 Crée un environnement virtuel Python (`.venv/`) et installe les dépendances
-(`pygame`, `pytest`, `flake8`).
+(`pygame`, `tqdm`, `pytest`, `flake8`).
 
 ## Utilisation
 
@@ -32,12 +32,21 @@ Crée un environnement virtuel Python (`.venv/`) et installe les dépendances
 | `-step-by-step` | Avance case par case (ESPACE / flèche droite / Entrée) | désactivé |
 | `-speed N` | Vitesse d'affichage (déplacements/seconde) hors mode pas-à-pas | `10` |
 | `-board-size N` | Taille du plateau (min. 3) — un modèle entraîné en 10x10 rejoue tel quel sur une autre taille | `10` |
+| `-reward-shaping` | Entraînement : bonus/malus basé sur la distance à la pomme verte la plus proche (voir *Modèles fournis*) | désactivé |
 
 ### Exemples
 
 Entraîner un modèle sur 100 sessions, sans affichage (rapide) :
 ```bash
-.venv/bin/python3 ./snake -sessions 100 -visual off -save models/100sess.json
+.venv/bin/python3 ./snake -sessions 100 -visual off -save models/mon_modele.json
+```
+En mode `-visual off`, une barre de progression (`tqdm`) s'affiche pendant
+l'entraînement, suivie d'un résumé (longueur moyenne/max, durée moyenne,
+% de sessions plafonnées) une fois terminé.
+
+Entraîner le modèle flagship (40 000 sessions, avec reward shaping) :
+```bash
+.venv/bin/python3 ./snake -sessions 40000 -visual off -reward-shaping -save models/40000sess.json
 ```
 
 Regarder jouer un modèle déjà entraîné, en continu, sans apprentissage :
@@ -45,13 +54,16 @@ Regarder jouer un modèle déjà entraîné, en continu, sans apprentissage :
 .venv/bin/python3 ./snake -visual on -load models/40000sess.json -sessions 5 -dontlearn -speed 8
 ```
 
-Évaluer rapidement un modèle sur plusieurs sessions, sans fenêtre :
+Évaluer un modèle sur de nombreuses sessions et voir les paliers de
+longueur atteints :
 ```bash
-.venv/bin/python3 ./snake -visual off -load models/40000sess.json -sessions 20 -dontlearn
+make benchmark                                    # 1000 sessions, modèle flagship
+make benchmark MODEL=models/x.json SESSIONS=300    # autre modèle / échantillon
 ```
 
-Raccourcis Makefile : `make train` (entraînement d'exemple), `make play`
-(ouvre le lobby graphique).
+Raccourcis Makefile : `make train` (entraîne le modèle flagship), `make
+play` (ouvre le lobby graphique), `make benchmark` (statistiques sur N
+sessions).
 
 ### Lobby graphique (bonus)
 
@@ -61,12 +73,18 @@ Raccourcis Makefile : `make train` (entraînement d'exemple), `make play`
 make play           # raccourci équivalent
 ```
 
-Ouvre un panneau de configuration graphique (sessions, taille du plateau,
-vitesse — chiffre entre les boutons `-`/`+` —, apprentissage on/off,
-pas-à-pas, chemin de sauvegarde). Le modèle chargé par défaut est
-`models/40000sess.json` (le plus performant) ; son chemin est affiché à
-l'écran. À la fin des sessions, un écran de résultats affiche longueur
-moyenne/max, durée moyenne, % de sessions plafonnées, et un graphique de
+Panneau de configuration graphique en deux écrans : Accueil (vitesse,
+taille du plateau, bouton PLAY) et Paramètres (nombre de sessions,
+pas-à-pas). Le lobby ne fait que **jouer** un modèle déjà entraîné —
+aucun apprentissage, aucune sauvegarde depuis cet écran ; l'entraînement
+se fait via la ligne de commande (`make train` ou `./snake -sessions
+...`). Le modèle chargé par défaut est `models/40000sess.json` (le plus
+performant) ; son chemin est affiché à l'écran.
+
+À la fin de chaque partie, un écran affiche la longueur atteinte et la
+durée : Espace/Entrée pour rejouer, Échap pour revenir à l'accueil. Une
+fois toutes les sessions jouées, un écran de résultats affiche longueur
+moyenne/max, durée moyenne, % de sessions plafonnées et un graphique de
 progression, avec les boutons Rejouer / Menu / Quitter.
 
 N'importe quel autre appel (avec au moins un flag existant) utilise le
@@ -74,26 +92,16 @@ flux CLI classique ci-dessus, inchangé.
 
 ## Modèles fournis
 
-Le dossier `models/` contient des modèles entraînés à différents stades pour
-montrer la progression de l'apprentissage :
+Le dossier `models/` contient le modèle flagship, `40000sess.json` (40 000
+sessions, ~6 100 états appris), utilisé par défaut par le lobby et par
+`make benchmark`. Il se reproduit avec `make train` (voir *Exemples*).
 
-| Fichier | Sessions | États appris |
-|---|---:|---:|
-| `1sess.json` | 1 | ~5 |
-| `10sess.json` | 10 | ~15 |
-| `100sess.json` | 100 | ~150 |
-| `1000sess.json` | 1 000 | ~1 100 |
-| `5000sess.json` | 5 000 | ~3 800 |
-| `20000sess.json` | 20 000 | ~5 640 |
-| `40000sess.json` | 40 000 | ~6 045 |
-
-Le modèle à 40 000 sessions (retenu comme modèle par défaut du lobby)
-atteint, sur 300 parties en mode exploitation (`-dontlearn` — échantillon
-large pour une estimation stable, les lots de 100 parties font varier
-chaque pourcentage de quelques points d'un tirage à l'autre) : longueur
-≥ 15 dans 90% des parties, ≥ 20 dans 70%, ≥ 25 dans 50%, ≥ 30 dans 30%,
-**≥ 35 dans 20%** (record observé : 53), et 2% de parties bloquées par le
-plafond de sécurité.
+Sur 1000 parties en mode exploitation (`-dontlearn`, via `make
+benchmark` — échantillon large pour une estimation stable, un lot de 100
+parties fait varier chaque pourcentage de quelques points d'un tirage à
+l'autre) : longueur moyenne 28.4, ≥ 15 dans 93% des parties, ≥ 20 dans
+82%, ≥ 25 dans 65%, ≥ 30 dans 43%, **≥ 35 dans 25%** (record observé :
+64), et 0.6% de parties bloquées par le plafond de sécurité.
 
 Il a été obtenu en comparant 3 approches en parallèle (30 graines
 aléatoires sur l'algorithme standard, un taux d'apprentissage décroissant,
@@ -123,12 +131,12 @@ make test    # suite de tests (pytest)
 make norm    # vérification de la norme (flake8)
 ```
 
-59 tests couvrant chaque module indépendamment (règles du plateau, vision,
-apprentissage, affichage, CLI, lobby).
+70 tests couvrant chaque module indépendamment (règles du plateau, vision,
+apprentissage, affichage, CLI, lobby, statistiques).
 
 ## Bonus implémentés
 
-- **Longueur élevée en fin de session** : voir le tableau ci-dessus
+- **Longueur élevée en fin de session** : voir les statistiques ci-dessus
   (`models/40000sess.json`, jusqu'à 35+ de façon reproductible).
 - **Affichage soigné** : lobby graphique avec panneau de configuration et
   écran de résultats/statistiques (voir ci-dessus).
@@ -150,10 +158,12 @@ srcs/
 ├── interpreter.py    # plateau → vision terminale + état compact pour la Q-table
 ├── agent.py           # Q-learning : choix d'action, apprentissage, sauvegarde/chargement
 ├── display.py         # affichage graphique du jeu (Pygame)
+├── stats.py            # statistiques agrégées sur un lot de sessions
 ├── lobby.py            # lobby graphique : config + résultats (bonus)
 └── main.py             # ligne de commande + routage lobby + boucle de sessions
 
 tests/        # tests unitaires et d'intégration, un fichier par module
+scripts/      # scripts autonomes (benchmark.py : évaluation par paliers)
 models/       # modèles Q-table entraînés (JSON)
 snake         # point d'entrée exécutable
 ```
