@@ -2,7 +2,10 @@ PYTHON := python3
 VENV := .venv
 VENV_BIN := $(VENV)/bin
 
-.PHONY: venv install train play test norm clean
+.PHONY: venv install train play benchmark test norm clean
+
+MODEL ?= models/40000sess.json
+SESSIONS ?= 1000
 
 venv:
 	$(PYTHON) -m venv $(VENV)
@@ -12,10 +15,13 @@ install: venv
 	$(VENV_BIN)/pip install -r requirements.txt
 
 train:
-	$(VENV_BIN)/python3 ./snake -sessions 40000 -visual off -reward-shaping -save models/100sess.json
+	$(VENV_BIN)/python3 ./snake -sessions 40000 -visual off -reward-shaping -save models/40000sess.json
 
 play:
 	$(VENV_BIN)/python3 ./snake -lobby
+
+benchmark:
+	$(VENV_BIN)/python3 scripts/benchmark.py -model $(MODEL) -sessions $(SESSIONS)
 
 test:
 	$(VENV_BIN)/pytest -q
