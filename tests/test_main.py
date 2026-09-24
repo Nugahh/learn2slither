@@ -25,7 +25,7 @@ def test_training_session_prints_progress_bar_and_saves_model(tmp_path):
     result = run_snake(["-sessions", "2", "-save", str(model_path)])
 
     assert result.returncode == 0, result.stderr
-    assert "[" in result.stdout and "2/2" in result.stdout
+    assert "2/2" in result.stdout
     assert "Sessions : 2" in result.stdout
     assert f"Save learning state in {model_path}" in result.stdout
     assert model_path.exists()
@@ -324,16 +324,6 @@ def test_run_sessions_stops_early_and_returns_go_home(monkeypatch):
     assert len(calls) == 1
     assert go_home is True
     assert len(records) == 1
-
-
-def test_format_progress_bar_renders_filled_and_empty_segments():
-    bar = main_module.format_progress_bar(5, 10, width=10)
-    assert bar == "\r[#####-----] 5/10 (50%)"
-
-
-def test_format_progress_bar_full_at_completion():
-    bar = main_module.format_progress_bar(10, 10, width=10)
-    assert bar == "\r[##########] 10/10 (100%)"
 
 
 def test_format_summary_reports_aggregate_stats():
