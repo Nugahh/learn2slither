@@ -146,9 +146,6 @@ apprentissage, affichage, CLI, lobby, statistiques).
   test automatisé
   (`tests/test_main.py::test_model_trained_on_default_board_plays_on_different_size`).
 
-Détails et preuves complètes dans
-`docs/superpowers/specs/2026-09-22-bonus-features-design.md`.
-
 ## Structure du projet
 
 ```
@@ -185,6 +182,3 @@ snake         # point d'entrée exécutable
   d'entrée (`-load` invalide, `-board-size` trop petit, `-save` vers un
   dossier inexistant) sont signalées proprement plutôt que de faire planter
   le programme.
-
-Détails complets du design et de l'implémentation dans
-`docs/superpowers/specs/` et `docs/superpowers/plans/`.
